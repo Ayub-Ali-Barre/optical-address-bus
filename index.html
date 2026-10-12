@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optisk Adressbuss-Simulator</title>
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #131b2e;
+      --bg-viewport: #000000;
+      --color-red: #ff2a2a;
+      --color-white: #ffffff;
+      --glow-red: 0 0 25px rgba(255, 42, 42, 0.7);
+      --glow-white: 0 0 30px rgba(255, 255, 255, 0.85);
+      --border-color: #24304f;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* CV Display Viewport */
+    .viewport-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .viewport-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .toggle-labels-btn {
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .toggle-labels-btn:hover {
+      background: #334155;
+      color: var(--text-main);
+    }
+
+    /* Den svarta ytan som kameran läser av */
+    .target-screen {
+      background: var(--bg-viewport);
+      border-radius: 8px;
+      border: 2px solid #1a2234;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      position: relative;
+    }
+
+    .light-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .light-rect {
+      width: 90px;
+      height: 140px;
+      border-radius: 8px;
+      transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .light-rect.state-red {
+      background-color: var(--color-red);
+      box-shadow: var(--glow-red);
+    }
+
+    .light-rect.state-white {
+      background-color: var(--color-white);
+      box-shadow: var(--glow-white);
+    }
+
+    .light-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: opacity 0.2s;
+    }
+
+    .hide-labels .light-label {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* Info Data Panel */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .info-pill {
+      background: #0b1120;
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .info-pill .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-pill .value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* Knappar för de 16 adressbussarna */
+    .controls-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .controls-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .addr-btn {
+      background: #172138;
+      border: 1px solid #2a3b63;
+      color: var(--text-main);
+      padding: 14px 10px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .addr-btn .binary-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      font-weight: 400;
+    }
+
+    .addr-btn:hover {
+      background: #233458;
+      border-color: #3b82f6;
+      transform: translateY(-1px);
+    }
+
+    .addr-btn.active {
+      background: #2563eb;
+      border-color: #60a5fa;
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+    }
+
+    .addr-btn.active .binary-sub {
+      color: #dbeafe;
+    }
+
+    /* Auto-loop sektion */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 16px;
+      margin-top: 16px;
+      border-top: 1px solid var(--border-color);
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: #334155;
+    }
+
+    .action-btn.active {
+      background: #059669;
+      border-color: #10b981;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    select {
+      background: #172138;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .button-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .light-rect {
+        width: 60px;
+        height: 100px;
+      }
+      .target-screen {
+        gap: 14px;
+        padding: 24px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Optisk Adressbuss-Simulator</h1>
+      <p>4 rektanglar kodar 16 unika adressbussar (0–15) för avläsning med kamera och OpenCV</p>
+    </header>
+
+    <!-- Kamera Display / Målyta -->
+    <section class="viewport-card">
+      <div class="viewport-header">
+        <div class="status-badge">
+          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981;"></span>
+          <span id="badgeText">Adressbuss 0 vald</span>
+        </div>
+        <button class="toggle-labels-btn" id="toggleLabelsBtn" title="Dölj etiketter för ren OpenCV-vy">
+          👁️ Växla etiketter (Kameravy)
+        </button>
+      </div>
+
+      <!-- Den svarta ytan med de 4 lamporna -->
+      <div class="target-screen" id="targetScreen">
+        <!-- Rektangel 1 (Bit 3, MSB) -->
+        <div class="light-column">
+          <div class="light-rect state-red" id="rect3"></div>
+          <span class="light-label">Bit 3 (8)</span>
+        </div>
+
+        <!-- Rektangel 2 (Bit 2) -->
+        <div class="light-column">
+          <div class="light-rect state-red" id="rect2"></div>
+          <span class="light-label">Bit 2 (4)</span>
+        </div>
+
+        <!-- Rektangel 3 (Bit 1) -->
+        <div class="light-column">
+          <div class="light-rect state-red" id="rect1"></div>
+          <span class="light-label">Bit 1 (2)</span>
+        </div>
+
+        <!-- Rektangel 4 (Bit 0, LSB) -->
+        <div class="light-column">
+          <div class="light-rect state-red" id="rect0"></div>
+          <span class="light-label">Bit 0 (1)</span>
+        </div>
+      </div>
+
+      <!-- Data info -->
+      <div class="info-grid">
+        <div class="info-pill">
+          <span class="label">Aktiv Buss</span>
+          <span class="value" id="valBus">Adressbuss 0</span>
+        </div>
+        <div class="info-pill">
+          <span class="label">Binärt (B3 B2 B1 B0)</span>
+          <span class="value" id="valBinary">0000</span>
+        </div>
+        <div class="info-pill">
+          <span class="label">Hexadecimal</span>
+          <span class="value" id="valHex">0x00</span>
+        </div>
+        <div class="info-pill">
+          <span class="label">Mönster (Vänster till Höger)</span>
+          <span class="value" id="valPattern" style="font-size:0.9rem;">RÖD RÖD RÖD RÖD</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kontroller: Knappar för adressbussar -->
+    <section class="controls-card">
+      <div class="controls-title">
+        <span>Välj Adressbuss (0 – 15)</span>
+        <span style="font-size:0.85rem; font-weight:400; color:var(--text-muted);">
+          Röd = 0 &bull; Vit = 1
+        </span>
+      </div>
+
+      <div class="button-grid" id="buttonGrid">
+        <!-- Genereras dynamiskt via JS (16 knappar) -->
+      </div>
+
+      <!-- Auto-loop Toolbar -->
+      <div class="toolbar">
+        <button class="action-btn" id="loopBtn">
+          ▶ Starta Auto-loop
+        </button>
+        <div class="speed-control">
+          <label for="speedSelect">Intervall:</label>
+          <select id="speedSelect">
+            <option value="500">0.5 sekunder</option>
+            <option value="1000" selected>1.0 sekund</option>
+            <option value="2000">2.0 sekunder</option>
+          </select>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let currentAddress = 0;
+    let loopInterval = null;
+
+    const rects = [
+      document.getElementById('rect0'), // Bit 0 (LSB)
+      document.getElementById('rect1'), // Bit 1
+      document.getElementById('rect2'), // Bit 2
+      document.getElementById('rect3')  // Bit 3 (MSB)
+    ];
+
+    const valBus = document.getElementById('valBus');
+    const valBinary = document.getElementById('valBinary');
+    const valHex = document.getElementById('valHex');
+    const valPattern = document.getElementById('valPattern');
+    const badgeText = document.getElementById('badgeText');
+    const targetScreen = document.getElementById('targetScreen');
+    const toggleLabelsBtn = document.getElementById('toggleLabelsBtn');
+    const loopBtn = document.getElementById('loopBtn');
+    const speedSelect = document.getElementById('speedSelect');
+    const buttonGrid = document.getElementById('buttonGrid');
+
+    // 1. Skapa 16 knappar (0 till 15)
+    for (let i = 0; i < 16; i++) {
+      const btn = document.createElement('button');
+      btn.className = `addr-btn ${i === 0 ? 'active' : ''}`;
+      btn.id = `btn-${i}`;
+      
+      const binStr = i.toString(2).padStart(4, '0');
+      btn.innerHTML = `
+        <span>Buss ${i}</span>
+        <span class="binary-sub">${binStr}</span>
+      `;
+      
+      btn.addEventListener('click', () => {
+        stopLoop();
+        setAddress(i);
+      });
+      
+      buttonGrid.appendChild(btn);
+    }
+
+    // 2. Uppdatera adress och mönster
+    function setAddress(addr) {
+      currentAddress = addr;
+
+      // Uppdatera knapparna
+      document.querySelectorAll('.addr-btn').forEach((b, idx) => {
+        if (idx === addr) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+
+      // Beräkna bitarna (4 bitar)
+      const bits = [
+        (addr >> 0) & 1, // Bit 0
+        (addr >> 1) & 1, // Bit 1
+        (addr >> 2) & 1, // Bit 2
+        (addr >> 3) & 1  // Bit 3
+      ];
+
+      // Tillämpa färger (0 = Röd, 1 = Vit)
+      bits.forEach((bit, idx) => {
+        const el = rects[idx];
+        if (bit === 1) {
+          el.className = 'light-rect state-white';
+        } else {
+          el.className = 'light-rect state-red';
+        }
+      });
+
+      // Uppdatera info-texter
+      const binStr = addr.toString(2).padStart(4, '0');
+      const hexStr = '0x' + addr.toString(16).toUpperCase().padStart(2, '0');
+      const patternDesc = [bits[3], bits[2], bits[1], bits[0]]
+        .map(b => b === 1 ? 'VIT' : 'RÖD')
+        .join('  ');
+
+      valBus.textContent = `Adressbuss ${addr}`;
+      valBinary.textContent = binStr;
+      valHex.textContent = hexStr;
+      valPattern.textContent = patternDesc;
+      badgeText.textContent = `Adressbuss ${addr} vald (${binStr})`;
+    }
+
+    // 3. Växla etiketter för ren OpenCV-vy
+    toggleLabelsBtn.addEventListener('click', () => {
+      targetScreen.classList.toggle('hide-labels');
+      if (targetScreen.classList.contains('hide-labels')) {
+        toggleLabelsBtn.textContent = '👁️ Visa etiketter';
+      } else {
+        toggleLabelsBtn.textContent = '👁️ Dölj etiketter (Kameravy)';
+      }
+    });
+
+    // 4. Auto-loop funktionalitet
+    function startLoop() {
+      const speed = parseInt(speedSelect.value, 10);
+      loopBtn.classList.add('active');
+      loopBtn.textContent = '⏹ Stoppa Auto-loop';
+
+      loopInterval = setInterval(() => {
+        const nextAddr = (currentAddress + 1) % 16;
+        setAddress(nextAddr);
+      }, speed);
+    }
+
+    function stopLoop() {
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        loopInterval = null;
+        loopBtn.classList.remove('active');
+        loopBtn.textContent = '▶ Starta Auto-loop';
+      }
+    }
+
+    loopBtn.addEventListener('click', () => {
+      if (loopInterval) {
+        stopLoop();
+      } else {
+        startLoop();
+      }
+    });
+
+    speedSelect.addEventListener('change', () => {
+      if (loopInterval) {
+        stopLoop();
+        startLoop();
+      }
+    });
+
+    // Initiera med Adressbuss 0
+    setAddress(0);
+  </script>
+</body>
+</html>
