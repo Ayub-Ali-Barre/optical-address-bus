@@ -58,9 +58,7 @@
       font-weight: 700;
       letter-spacing: -0.5px;
       margin-bottom: 6px;
-      background: linear-gradient(135deg, #ffffff 40%, #7dd3fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: #f8fafc;
     }
 
     header p {
@@ -575,7 +573,7 @@
     <!-- OPTICAL VIEWPORT -->
     <div class="viewport" id="viewport">
       <button class="fullscreen-btn" id="toggleFsBtn" title="Växla till rent helskärmsläge för datorseende">
-        ⛶ Kameraläge (Helskärm)
+        Kameraläge (Helskärm)
       </button>
 
       <!-- LED LAMP -->
@@ -608,13 +606,13 @@
     <!-- PRIMARY ACTION BUTTONS -->
     <div class="action-row">
       <button class="btn btn-primary" id="sendOnceBtn">
-        ▶ Sänd en gång
+        Sänd en gång
       </button>
       <button class="btn btn-success" id="loopBtn">
-        🔁 Loopa kontinuerligt
+        Loopa kontinuerligt
       </button>
       <button class="btn btn-danger" id="stopBtn">
-        ⏹ Stoppa
+        Stoppa
       </button>
     </div>
 
@@ -694,15 +692,15 @@
       <!-- Presets -->
       <div class="presets-row">
         <span style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Snabbval:</span>
-        <button class="preset-chip" onclick="applyPreset(400, 3, 1000)">🐢 Långsam (400 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(200, 3, 800)">🎯 Standard 30 FPS (200 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(100, 3, 500)">⚡ Snabb 60 FPS (100 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(50, 4, 300)">🚀 Turbo 120 FPS (50 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(400, 3, 1000)">Långsam (400 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(200, 3, 800)">Standard 30 FPS (200 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(100, 3, 500)">Snabb 60 FPS (100 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(50, 4, 300)">Turbo 120 FPS (50 ms)</button>
       </div>
 
       <!-- Camera margin helper -->
       <div class="fps-helper" id="fpsHelper">
-        ℹ️ Vid 200 ms får en 30 FPS-kamera ~6.0 bildrutor per bit och en 60 FPS-kamera ~12.0 bildrutor per bit. (Mycket pålitlig avläsning).
+        Vid 200 ms får en 30 FPS-kamera ~6.0 bildrutor per bit och en 60 FPS-kamera ~12.0 bildrutor per bit. (Mycket pålitlig avläsning).
       </div>
     </div>
 
@@ -717,7 +715,7 @@
 
       <div class="pattern-save-row">
         <input type="text" id="patternNameInput" placeholder="Namnge mönstret (t.ex. 'Buss 15 Snabbtest')...">
-        <button class="btn btn-outline" id="savePatternBtn">💾 Spara nuvarande inställning</button>
+        <button class="btn btn-outline" id="savePatternBtn">Spara nuvarande inställning</button>
       </div>
 
       <div class="pattern-list" id="patternList">
@@ -726,8 +724,8 @@
 
       <div class="storage-footer">
         <div style="display:flex; gap:8px;">
-          <button class="btn btn-outline btn-sm" id="exportBtn">📥 Exportera (JSON)</button>
-          <button class="btn btn-outline btn-sm" id="importBtn">📤 Importera JSON</button>
+          <button class="btn btn-outline btn-sm" id="exportBtn">Exportera (JSON)</button>
+          <button class="btn btn-outline btn-sm" id="importBtn">Importera JSON</button>
           <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </div>
         <button class="btn btn-danger btn-sm" id="resetDefaultsBtn">Återställ förvalda mönster</button>
@@ -913,7 +911,7 @@
       setLedState(0);
       statusText.textContent = "VILO-LÄGE (IDLE)";
       loopBtn.classList.remove('active');
-      loopBtn.innerHTML = "🔁 Loopa kontinuerligt";
+      loopBtn.innerHTML = "Loopa kontinuerligt";
     }
 
     sendOnceBtn.addEventListener('click', () => {
@@ -928,7 +926,7 @@
         stopTransmission();
         isLooping = true;
         loopBtn.classList.add('active');
-        loopBtn.innerHTML = "⏹ Stoppa Loop";
+        loopBtn.innerHTML = "Stoppa Loop";
         transmitSequence();
       }
     });
@@ -998,14 +996,14 @@
       const framesAt30 = ((config.bitDuration / 1000) * 30).toFixed(1);
       const framesAt60 = ((config.bitDuration / 1000) * 60).toFixed(1);
 
-      let healthNote = "🟢 Mycket pålitlig avläsning";
+      let healthNote = "Mycket pålitlig avläsning";
       if (framesAt30 < 2.0) {
-        healthNote = "🔴 Risk för bit-bortfall på 30 FPS! Kräver 60 FPS eller högre";
+        healthNote = "Risk för bit-bortfall på 30 FPS! Kräver 60 FPS eller högre";
       } else if (framesAt30 < 3.5) {
-        healthNote = "🟡 Snabb takt; säkerställ stabil FPS och god exponering";
+        healthNote = "Snabb takt; säkerställ stabil FPS och god exponering";
       }
 
-      fpsHelper.innerHTML = `ℹ️ Vid <strong>${config.bitDuration} ms</strong> får en 30 FPS-kamera ~<strong>${framesAt30}</strong> rutor/bit och en 60 FPS-kamera ~<strong>${framesAt60}</strong> rutor/bit. (${healthNote}).`;
+      fpsHelper.innerHTML = `Vid <strong>${config.bitDuration} ms</strong> får en 30 FPS-kamera ~<strong>${framesAt30}</strong> rutor/bit och en 60 FPS-kamera ~<strong>${framesAt60}</strong> rutor/bit. (${healthNote}).`;
     }
 
     bitDurationSlider.addEventListener('input', updateTimingDisplay);
@@ -1028,7 +1026,7 @@
       viewport.classList.toggle('fullscreen-mode');
       const isFs = viewport.classList.contains('fullscreen-mode');
       fsHint.style.display = isFs ? 'block' : 'none';
-      toggleFsBtn.textContent = isFs ? '✕ Avsluta kameraläge' : '⛶ Kameraläge (Helskärm)';
+      toggleFsBtn.textContent = isFs ? 'Avsluta kameraläge' : 'Kameraläge (Helskärm)';
     }
 
     toggleFsBtn.addEventListener('click', toggleFullscreenMode);
