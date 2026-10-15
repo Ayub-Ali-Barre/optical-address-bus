@@ -1,17 +1,29 @@
-# Optisk Adressbuss-Simulator
+# Optisk LED-Transmitter & Timing-Simulator
 
-En webbaserad simulator för optisk kamerakommunikation (Optical Camera Communication / OCC). 
-Simulatorn visar 4 rektangulära ljuskällor mot en mörk bakgrund med hög kontrast, optimerad för avläsning med webbkamera och datorseende (OpenCV).
+En avancerad webbaserad simulator för optisk kamerakommunikation (Optical Camera Communication / OCC). 
+Simulatorn sänder data och adressbussar genom en enda optisk LED-lampa som blinkar i en tidsinställbar takt optimerad för datorseende och OpenCV.
 
-## Funktioner
+🌐 **Live GitHub Pages:** [https://ayub-ali-barre.github.io/optical-address-bus/](https://ayub-ali-barre.github.io/optical-address-bus/)
 
-- **16 Adressbussar (0–15):** Varje adress representeras av ett unikt 4-bitars färgmönster över 4 rektanglar.
-- **Färgkodning:**
-  - 🔴 **Röd** = Logisk `0`
-  - ⚪ **Vit** = Logisk `1`
-- **Exempel:**
-  - Adressbuss 0: `0000` (Röd, Röd, Röd, Röd)
-  - Adressbuss 5: `0101` (Röd, Vit, Röd, Vit)
-  - Adressbuss 15: `1111` (Vit, Vit, Vit, Vit)
-- **Kameravy-läge:** Möjlighet att dölja all kringliggande text och endast visa de 4 rektanglarna mot ren svart bakgrund.
-- **Auto-loop:** Sekvensering genom alla 16 adresser med inställbar hastighet för kontinuerlig testning av OpenCV-skript.
+---
+
+## Nya Funktioner
+
+### 1. Optisk LED-Lampa
+- **Avstängd (0):** Mörk skifferblå/svart med subtil kant, så kameran kan behålla positionen.
+- **Tänd (1):** Intensivt elektrisk blå lampa med radial ljusspridning/glow.
+- **Kameraläge (Helskärm):** Döljer all text och knappar och visar endast lampan mot en helsvart bakgrund.
+
+### 2. Full Kontroll över Takt & Tajming
+- **Bit-duration (30 – 1000 ms):** Justera exakt klocktakt i millisekunder eller välj snabbknappar (400ms, 200ms, 100ms, 50ms).
+- **Startpuls (1x – 6x bit-tid):** Preamble-signal med hög puls för att synkronisera kamerans klocka.
+- **Paus mellan paket (100 – 3000 ms):** Inter-paket-gap vid kontinuerlig loopning.
+- **FPS-kalkylator:** Beräknar i realtid hur många bildrutor en 30 FPS och 60 FPS webbkamera fångar per bit.
+
+### 3. Mönsterhanterare (Spara & Återanvänd)
+- **Spara mönster:** Namnge och spara en kombination av binär sekvens + exakta millisekundstider.
+- **LocalStorage:** Mönstren sparas direkt i webbläsaren och finns kvar vid återbesök.
+- **Exportera & Importera:** Dela sparade mönster som `.json`-filer mellan enheter eller kollegor.
+
+### 4. Realtids-Oscilloskop
+- Visar en kontinuerlig vågform av den elektriska/optiska signalen i synk med lampans blinkningar.

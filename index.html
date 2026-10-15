@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Optisk Adressbuss-Simulator</title>
+  <title>Optisk LED-Transmitter & Timing-Simulator</title>
   <style>
     :root {
-      --bg-main: #090d16;
-      --bg-card: #131b2e;
-      --bg-viewport: #000000;
-      --color-red: #ff2a2a;
-      --color-white: #ffffff;
-      --glow-red: 0 0 25px rgba(255, 42, 42, 0.7);
-      --glow-white: 0 0 30px rgba(255, 255, 255, 0.85);
-      --border-color: #24304f;
-      --text-main: #f1f5f9;
+      --bg-main: #060911;
+      --bg-card: #0e1526;
+      --bg-card-alt: #141e34;
+      --border-color: #202d4a;
+      --border-focus: #38bdf8;
+      --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent: #3b82f6;
+      --accent: #0284c7;
+      --accent-glow: rgba(2, 132, 199, 0.4);
+      --led-off-bg: radial-gradient(circle at 35% 35%, #0f1c30 0%, #060b14 70%);
+      --led-off-border: #182846;
+      --led-off-glow: inset 0 3px 8px rgba(0,0,0,0.8);
+      --led-on-bg: radial-gradient(circle at 45% 45%, #ffffff 0%, #bae6fd 20%, #38bdf8 50%, #0284c7 80%, #0369a1 100%);
+      --led-on-border: #e0f2fe;
+      --led-on-glow: 0 0 35px #38bdf8, 0 0 80px #0284c7, 0 0 140px rgba(14, 165, 233, 0.7);
     }
 
     * {
@@ -33,12 +37,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 24px 16px 60px;
     }
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 940px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -46,13 +50,17 @@
 
     header {
       text-align: center;
+      margin-bottom: 4px;
     }
 
     header h1 {
-      font-size: 1.8rem;
+      font-size: 1.85rem;
       font-weight: 700;
       letter-spacing: -0.5px;
       margin-bottom: 6px;
+      background: linear-gradient(135deg, #ffffff 40%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     header p {
@@ -60,263 +68,498 @@
       font-size: 0.95rem;
     }
 
-    /* CV Display Viewport */
-    .viewport-card {
+    /* CARD STYLING */
+    .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     }
 
-    .viewport-header {
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-      gap: 10px;
+      color: #f1f5f9;
     }
 
-    .status-badge {
-      display: inline-flex;
+    /* OPTICAL VIEWPORT (THE LED STAGE) */
+    .viewport {
+      background: #000000;
+      border: 2px solid #17223b;
+      border-radius: 12px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 8px;
-      background: rgba(59, 130, 246, 0.15);
-      color: #93c5fd;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-weight: 600;
-      font-size: 0.9rem;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 30px 20px 20px;
     }
 
-    .toggle-labels-btn {
-      background: #1e293b;
-      color: var(--text-muted);
+    .fullscreen-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(20, 30, 52, 0.8);
       border: 1px solid var(--border-color);
+      color: var(--text-muted);
       padding: 6px 12px;
       border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.2s;
-    }
-
-    .toggle-labels-btn:hover {
-      background: #334155;
-      color: var(--text-main);
-    }
-
-    /* Den svarta ytan som kameran läser av */
-    .target-screen {
-      background: var(--bg-viewport);
-      border-radius: 8px;
-      border: 2px solid #1a2234;
-      padding: 40px 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 28px;
-      position: relative;
-    }
-
-    .light-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .light-rect {
-      width: 90px;
-      height: 140px;
-      border-radius: 8px;
-      transition: background-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .light-rect.state-red {
-      background-color: var(--color-red);
-      box-shadow: var(--glow-red);
-    }
-
-    .light-rect.state-white {
-      background-color: var(--color-white);
-      box-shadow: var(--glow-white);
-    }
-
-    .light-label {
       font-size: 0.8rem;
-      font-weight: 600;
-      color: #64748b;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      transition: opacity 0.2s;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+      z-index: 10;
     }
 
-    .hide-labels .light-label {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    /* Info Data Panel */
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .info-pill {
-      background: #0b1120;
-      border: 1px solid var(--border-color);
-      padding: 10px 14px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .info-pill .label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .info-pill .value {
-      font-size: 1.15rem;
-      font-weight: 700;
+    .fullscreen-btn:hover {
+      background: #1e293b;
       color: var(--text-main);
+      border-color: var(--accent);
+    }
+
+    /* THE LED BULB */
+    .led-wrapper {
+      position: relative;
+      margin: 15px 0 25px;
+    }
+
+    .led-bulb {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: var(--led-off-bg);
+      border: 4px solid var(--led-off-border);
+      box-shadow: var(--led-off-glow);
+      transition: background 0.05s ease, border-color 0.05s ease, box-shadow 0.05s ease;
+      cursor: pointer;
+    }
+
+    .led-bulb.state-on {
+      background: var(--led-on-bg);
+      border-color: var(--led-on-border);
+      box-shadow: var(--led-on-glow);
+    }
+
+    /* STATUS BANNER UNDER LED */
+    .signal-status-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(14, 21, 38, 0.9);
+      border: 1px solid #1e293b;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #475569;
+      transition: background 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .status-dot.active {
+      background: #38bdf8;
+      box-shadow: 0 0 10px #38bdf8;
+    }
+
+    .status-text {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #cbd5e1;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    /* Knappar för de 16 adressbussarna */
-    .controls-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
+    /* REALTIME OSCILLOSCOPE CANVAS */
+    .waveform-card {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .controls-title {
-      font-size: 1rem;
+    .waveform-canvas {
+      width: 100%;
+      height: 70px;
+      background: #020408;
+      border: 1px solid #1a253c;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* PRIMARY CONTROLS (SEND, LOOP, STOP) */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border-radius: 8px;
       font-weight: 600;
-      margin-bottom: 12px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+    .btn-primary:hover {
+      background: #0369a1;
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.5);
+    }
+
+    .btn-success {
+      background: #0f766e;
+      color: #ffffff;
+      border-color: #14b8a6;
+    }
+    .btn-success:hover {
+      background: #115e59;
+      box-shadow: 0 0 16px rgba(20, 184, 166, 0.4);
+    }
+    .btn-success.active {
+      background: #059669;
+      border-color: #34d399;
+      animation: pulseGreen 1.5s infinite;
+    }
+
+    @keyframes pulseGreen {
+      0%, 100% { box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
+      50% { box-shadow: 0 0 22px rgba(52, 211, 153, 0.8); }
+    }
+
+    .btn-danger {
+      background: #1e293b;
+      color: #f87171;
+      border-color: #334155;
+    }
+    .btn-danger:hover {
+      background: #7f1d1d;
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
+    .btn-outline {
+      background: #172136;
+      color: #cbd5e1;
+      border-color: var(--border-color);
+    }
+    .btn-outline:hover {
+      background: #223252;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+
+    /* TIMING CONTROLS SECTION */
+    .timing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .control-group {
+      background: #090f1d;
+      border: 1px solid var(--border-color);
+      padding: 14px 16px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 0.85rem;
     }
 
-    .button-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+    .control-header label {
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .control-header .val-display {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      background: #111d33;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #1e3357;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #0284c7;
+      cursor: pointer;
+    }
+
+    .range-limits {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* PRESETS ROW */
+    .presets-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .preset-chip {
+      background: #121c32;
+      border: 1px solid #233454;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-chip:hover {
+      background: #1e3157;
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+
+    /* CAMERA FPS MARGIN BOX */
+    .fps-helper {
+      background: rgba(2, 132, 199, 0.08);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #bae6fd;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
       gap: 10px;
     }
 
+    /* ADDRESS BUS SELECTION */
+    .address-buttons {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
     .addr-btn {
-      background: #172138;
-      border: 1px solid #2a3b63;
+      background: #121c33;
+      border: 1px solid #223456;
       color: var(--text-main);
-      padding: 14px 10px;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      padding: 10px 6px;
+      border-radius: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      transition: all 0.15s ease;
+      gap: 2px;
+      transition: all 0.15s;
     }
 
-    .addr-btn .binary-sub {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+    .addr-btn .sub-bin {
+      font-size: 0.68rem;
       font-family: monospace;
-      font-weight: 400;
+      color: var(--text-muted);
     }
 
     .addr-btn:hover {
-      background: #233458;
-      border-color: #3b82f6;
-      transform: translateY(-1px);
+      background: #1d2d50;
+      border-color: #38bdf8;
     }
 
     .addr-btn.active {
-      background: #2563eb;
-      border-color: #60a5fa;
+      background: #0284c7;
+      border-color: #7dd3fc;
       color: #ffffff;
-      box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
     }
 
-    .addr-btn.active .binary-sub {
-      color: #dbeafe;
+    .addr-btn.active .sub-bin {
+      color: #e0f2fe;
     }
 
-    /* Auto-loop sektion */
-    .toolbar {
+    /* CUSTOM BIT INPUT */
+    .custom-input-box {
       display: flex;
+      gap: 10px;
       align-items: center;
+      background: #090f1e;
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 8px;
+    }
+
+    .custom-input-box label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .custom-input-box input[type="text"] {
+      flex: 1;
+      background: #141f36;
+      border: 1px solid #283a60;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 1.05rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      letter-spacing: 2px;
+    }
+
+    .custom-input-box input[type="text"]:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+
+    /* PATTERN MANAGER (STORAGE) */
+    .pattern-save-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .pattern-save-row input {
+      flex: 1;
+      min-width: 220px;
+      background: #090f1e;
+      border: 1px solid var(--border-color);
+      color: #ffffff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .pattern-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .pattern-item {
+      background: #091020;
+      border: 1px solid #1a2846;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      padding-top: 16px;
-      margin-top: 16px;
+      transition: border-color 0.15s;
+    }
+
+    .pattern-item:hover {
+      border-color: #38bdf8;
+    }
+
+    .pattern-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pattern-item-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #f1f5f9;
+    }
+
+    .pattern-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    .pattern-item-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    .storage-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
       border-top: 1px solid var(--border-color);
       flex-wrap: wrap;
     }
 
-    .action-btn {
-      background: #1e293b;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+    /* FULLSCREEN OVERLAY FOR CAMERA VIEW */
+    .fullscreen-mode {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #000000 !important;
+      z-index: 99999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
     }
 
-    .action-btn:hover {
-      background: #334155;
+    .fullscreen-mode .led-bulb {
+      width: 220px;
+      height: 220px;
     }
 
-    .action-btn.active {
-      background: #059669;
-      border-color: #10b981;
+    .fullscreen-exit-hint {
+      position: absolute;
+      bottom: 24px;
+      color: #334155;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
     }
 
-    .speed-control {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    select {
-      background: #172138;
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-
-    @media (max-width: 600px) {
-      .button-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .light-rect {
-        width: 60px;
-        height: 100px;
-      }
-      .target-screen {
-        gap: 14px;
-        padding: 24px 10px;
+    @media (max-width: 768px) {
+      .address-buttons {
+        grid-template-columns: repeat(4, 1fr);
       }
     }
   </style>
@@ -325,235 +568,640 @@
 
   <div class="container">
     <header>
-      <h1>Optisk Adressbuss-Simulator</h1>
-      <p>4 rektanglar kodar 16 unika adressbussar (0–15) för avläsning med kamera och OpenCV</p>
+      <h1>Optisk LED-Transmitter & Timing-Simulator</h1>
+      <p>Blinkar data och adressbussar optiskt med anpassningsbar klocktakt och mönsterlagring</p>
     </header>
 
-    <!-- Kamera Display / Målyta -->
-    <section class="viewport-card">
-      <div class="viewport-header">
-        <div class="status-badge">
-          <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981;"></span>
-          <span id="badgeText">Adressbuss 0 vald</span>
-        </div>
-        <button class="toggle-labels-btn" id="toggleLabelsBtn" title="Dölj etiketter för ren OpenCV-vy">
-          👁️ Växla etiketter (Kameravy)
-        </button>
+    <!-- OPTICAL VIEWPORT -->
+    <div class="viewport" id="viewport">
+      <button class="fullscreen-btn" id="toggleFsBtn" title="Växla till rent helskärmsläge för datorseende">
+        ⛶ Kameraläge (Helskärm)
+      </button>
+
+      <!-- LED LAMP -->
+      <div class="led-wrapper">
+        <div class="led-bulb" id="ledBulb" title="Klicka för manuellt test"></div>
       </div>
 
-      <!-- Den svarta ytan med de 4 lamporna -->
-      <div class="target-screen" id="targetScreen">
-        <!-- Rektangel 1 (Bit 3, MSB) -->
-        <div class="light-column">
-          <div class="light-rect state-red" id="rect3"></div>
-          <span class="light-label">Bit 3 (8)</span>
-        </div>
-
-        <!-- Rektangel 2 (Bit 2) -->
-        <div class="light-column">
-          <div class="light-rect state-red" id="rect2"></div>
-          <span class="light-label">Bit 2 (4)</span>
-        </div>
-
-        <!-- Rektangel 3 (Bit 1) -->
-        <div class="light-column">
-          <div class="light-rect state-red" id="rect1"></div>
-          <span class="light-label">Bit 1 (2)</span>
-        </div>
-
-        <!-- Rektangel 4 (Bit 0, LSB) -->
-        <div class="light-column">
-          <div class="light-rect state-red" id="rect0"></div>
-          <span class="light-label">Bit 0 (1)</span>
-        </div>
+      <!-- STATUS BAR -->
+      <div class="signal-status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span class="status-text" id="statusText">VILO-LÄGE (IDLE)</span>
       </div>
 
-      <!-- Data info -->
-      <div class="info-grid">
-        <div class="info-pill">
-          <span class="label">Aktiv Buss</span>
-          <span class="value" id="valBus">Adressbuss 0</span>
-        </div>
-        <div class="info-pill">
-          <span class="label">Binärt (B3 B2 B1 B0)</span>
-          <span class="value" id="valBinary">0000</span>
-        </div>
-        <div class="info-pill">
-          <span class="label">Hexadecimal</span>
-          <span class="value" id="valHex">0x00</span>
-        </div>
-        <div class="info-pill">
-          <span class="label">Mönster (Vänster till Höger)</span>
-          <span class="value" id="valPattern" style="font-size:0.9rem;">RÖD RÖD RÖD RÖD</span>
-        </div>
+      <div class="fullscreen-exit-hint" id="fsHint" style="display:none;">
+        Tryck ESC eller klicka på skärmen för att avsluta kameraläget
       </div>
-    </section>
+    </div>
 
-    <!-- Kontroller: Knappar för adressbussar -->
-    <section class="controls-card">
-      <div class="controls-title">
-        <span>Välj Adressbuss (0 – 15)</span>
-        <span style="font-size:0.85rem; font-weight:400; color:var(--text-muted);">
-          Röd = 0 &bull; Vit = 1
+    <!-- REALTIME OSCILLOSCOPE / TIMELINE -->
+    <div class="card waveform-card">
+      <div class="card-title">
+        <span>Signalspår i realtid (Oscilloskop)</span>
+        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">
+          Blå linje = LED PÅ (1) &bull; Botten = LED AV (0)
+        </span>
+      </div>
+      <canvas class="waveform-canvas" id="waveCanvas" width="900" height="70"></canvas>
+    </div>
+
+    <!-- PRIMARY ACTION BUTTONS -->
+    <div class="action-row">
+      <button class="btn btn-primary" id="sendOnceBtn">
+        ▶ Sänd en gång
+      </button>
+      <button class="btn btn-success" id="loopBtn">
+        🔁 Loopa kontinuerligt
+      </button>
+      <button class="btn btn-danger" id="stopBtn">
+        ⏹ Stoppa
+      </button>
+    </div>
+
+    <!-- DATA & ADDRESS BUS SELECTION -->
+    <div class="card">
+      <div class="card-title">
+        <span>Välj data som ska sändas</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;" id="activeDataSummary">
+          Aktiv: Buss 15 (1111)
         </span>
       </div>
 
-      <div class="button-grid" id="buttonGrid">
-        <!-- Genereras dynamiskt via JS (16 knappar) -->
+      <div class="address-buttons" id="addrBtnContainer">
+        <!-- Genereras dynamiskt (0–15) -->
       </div>
 
-      <!-- Auto-loop Toolbar -->
-      <div class="toolbar">
-        <button class="action-btn" id="loopBtn">
-          ▶ Starta Auto-loop
-        </button>
-        <div class="speed-control">
-          <label for="speedSelect">Intervall:</label>
-          <select id="speedSelect">
-            <option value="500">0.5 sekunder</option>
-            <option value="1000" selected>1.0 sekund</option>
-            <option value="2000">2.0 sekunder</option>
-          </select>
+      <div class="custom-input-box">
+        <label for="customBitsInput">Valfri binär sekvens:</label>
+        <input type="text" id="customBitsInput" value="1111" maxlength="32" placeholder="T.ex. 10110011" spellcheck="false">
+        <button class="btn btn-outline btn-sm" id="applyCustomBtn">Tillämpa</button>
+      </div>
+    </div>
+
+    <!-- TIMING & SPEED CONTROLS -->
+    <div class="card">
+      <div class="card-title">
+        <span>Takt- & Tajming-konfiguration</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">
+          Finkänslig kontroll i millisekunder
+        </span>
+      </div>
+
+      <div class="timing-grid">
+        <!-- Bit duration -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="bitDurationSlider">Bit-duration (Klocktakt):</label>
+            <span class="val-display" id="bitDurationVal">200 ms</span>
+          </div>
+          <input type="range" id="bitDurationSlider" min="30" max="1000" step="10" value="200">
+          <div class="range-limits">
+            <span>30 ms (Snabb)</span>
+            <span id="baudRateVal">5.0 baud (bit/s)</span>
+            <span>1000 ms (Långsam)</span>
+          </div>
+        </div>
+
+        <!-- Start Pulse Multiplier -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="startPulseSlider">Startpuls (Preamble):</label>
+            <span class="val-display" id="startPulseVal">3x (600 ms)</span>
+          </div>
+          <input type="range" id="startPulseSlider" min="1" max="6" step="1" value="3">
+          <div class="range-limits">
+            <span>1x bit-tid</span>
+            <span>Synkronisering</span>
+            <span>6x bit-tid</span>
+          </div>
+        </div>
+
+        <!-- Pause Duration -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="pauseSlider">Paus mellan sändningar:</label>
+            <span class="val-display" id="pauseVal">800 ms</span>
+          </div>
+          <input type="range" id="pauseSlider" min="100" max="3000" step="50" value="800">
+          <div class="range-limits">
+            <span>100 ms</span>
+            <span>Inter-paket gap</span>
+            <span>3000 ms</span>
+          </div>
         </div>
       </div>
-    </section>
+
+      <!-- Presets -->
+      <div class="presets-row">
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Snabbval:</span>
+        <button class="preset-chip" onclick="applyPreset(400, 3, 1000)">🐢 Långsam (400 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(200, 3, 800)">🎯 Standard 30 FPS (200 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(100, 3, 500)">⚡ Snabb 60 FPS (100 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(50, 4, 300)">🚀 Turbo 120 FPS (50 ms)</button>
+      </div>
+
+      <!-- Camera margin helper -->
+      <div class="fps-helper" id="fpsHelper">
+        ℹ️ Vid 200 ms får en 30 FPS-kamera ~6.0 bildrutor per bit och en 60 FPS-kamera ~12.0 bildrutor per bit. (Mycket pålitlig avläsning).
+      </div>
+    </div>
+
+    <!-- SAVED PATTERNS / STORAGE MANAGER -->
+    <div class="card">
+      <div class="card-title">
+        <span>Sparade mönster (Återanvänd & Dela)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">
+          Lagras i webbläsaren (LocalStorage)
+        </span>
+      </div>
+
+      <div class="pattern-save-row">
+        <input type="text" id="patternNameInput" placeholder="Namnge mönstret (t.ex. 'Buss 15 Snabbtest')...">
+        <button class="btn btn-outline" id="savePatternBtn">💾 Spara nuvarande inställning</button>
+      </div>
+
+      <div class="pattern-list" id="patternList">
+        <!-- Renderas från JS -->
+      </div>
+
+      <div class="storage-footer">
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline btn-sm" id="exportBtn">📥 Exportera (JSON)</button>
+          <button class="btn btn-outline btn-sm" id="importBtn">📤 Importera JSON</button>
+          <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </div>
+        <button class="btn btn-danger btn-sm" id="resetDefaultsBtn">Återställ förvalda mönster</button>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    let currentAddress = 0;
-    let loopInterval = null;
+    /* =====================================================================
+       STATE & CONFIGURATION
+       ===================================================================== */
+    let currentBits = "1111";
+    let isLooping = false;
+    let isTransmitting = false;
+    let sequenceTimer = null;
+    let currentLedState = 0; // 0 = OFF, 1 = ON
 
-    const rects = [
-      document.getElementById('rect0'), // Bit 0 (LSB)
-      document.getElementById('rect1'), // Bit 1
-      document.getElementById('rect2'), // Bit 2
-      document.getElementById('rect3')  // Bit 3 (MSB)
-    ];
+    let config = {
+      bitDuration: 200,      // ms
+      startMultiplier: 3,    // 3x bitDuration
+      pauseDuration: 800     // ms
+    };
 
-    const valBus = document.getElementById('valBus');
-    const valBinary = document.getElementById('valBinary');
-    const valHex = document.getElementById('valHex');
-    const valPattern = document.getElementById('valPattern');
-    const badgeText = document.getElementById('badgeText');
-    const targetScreen = document.getElementById('targetScreen');
-    const toggleLabelsBtn = document.getElementById('toggleLabelsBtn');
+    // DOM Elements
+    const ledBulb = document.getElementById('ledBulb');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const viewport = document.getElementById('viewport');
+    const toggleFsBtn = document.getElementById('toggleFsBtn');
+    const fsHint = document.getElementById('fsHint');
+    const sendOnceBtn = document.getElementById('sendOnceBtn');
     const loopBtn = document.getElementById('loopBtn');
-    const speedSelect = document.getElementById('speedSelect');
-    const buttonGrid = document.getElementById('buttonGrid');
+    const stopBtn = document.getElementById('stopBtn');
+    const addrBtnContainer = document.getElementById('addrBtnContainer');
+    const customBitsInput = document.getElementById('customBitsInput');
+    const applyCustomBtn = document.getElementById('applyCustomBtn');
+    const activeDataSummary = document.getElementById('activeDataSummary');
 
-    // 1. Skapa 16 knappar (0 till 15)
+    // Timing DOM
+    const bitDurationSlider = document.getElementById('bitDurationSlider');
+    const bitDurationVal = document.getElementById('bitDurationVal');
+    const baudRateVal = document.getElementById('baudRateVal');
+    const startPulseSlider = document.getElementById('startPulseSlider');
+    const startPulseVal = document.getElementById('startPulseVal');
+    const pauseSlider = document.getElementById('pauseSlider');
+    const pauseVal = document.getElementById('pauseVal');
+    const fpsHelper = document.getElementById('fpsHelper');
+
+    // Storage DOM
+    const patternNameInput = document.getElementById('patternNameInput');
+    const savePatternBtn = document.getElementById('savePatternBtn');
+    const patternList = document.getElementById('patternList');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFileInput = document.getElementById('importFileInput');
+    const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
+
+    // Waveform Canvas
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+    let waveHistory = new Array(180).fill(0);
+
+    /* =====================================================================
+       1. INITIALIZE ADDRESS BUTTONS (0–15)
+       ===================================================================== */
     for (let i = 0; i < 16; i++) {
       const btn = document.createElement('button');
-      btn.className = `addr-btn ${i === 0 ? 'active' : ''}`;
-      btn.id = `btn-${i}`;
-      
-      const binStr = i.toString(2).padStart(4, '0');
+      const bin = i.toString(2).padStart(4, '0');
+      btn.className = `addr-btn ${i === 15 ? 'active' : ''}`;
+      btn.id = `addr-btn-${i}`;
       btn.innerHTML = `
-        <span>Buss ${i}</span>
-        <span class="binary-sub">${binStr}</span>
+        <span>${i}</span>
+        <span class="sub-bin">${bin}</span>
       `;
-      
       btn.addEventListener('click', () => {
-        stopLoop();
-        setAddress(i);
+        selectAddress(i, bin);
       });
-      
-      buttonGrid.appendChild(btn);
+      addrBtnContainer.appendChild(btn);
     }
 
-    // 2. Uppdatera adress och mönster
-    function setAddress(addr) {
-      currentAddress = addr;
-
-      // Uppdatera knapparna
+    function selectAddress(num, bin) {
+      currentBits = bin;
+      customBitsInput.value = bin;
       document.querySelectorAll('.addr-btn').forEach((b, idx) => {
-        if (idx === addr) {
-          b.classList.add('active');
-        } else {
-          b.classList.remove('active');
-        }
+        b.classList.toggle('active', idx === num);
       });
-
-      // Beräkna bitarna (4 bitar)
-      const bits = [
-        (addr >> 0) & 1, // Bit 0
-        (addr >> 1) & 1, // Bit 1
-        (addr >> 2) & 1, // Bit 2
-        (addr >> 3) & 1  // Bit 3
-      ];
-
-      // Tillämpa färger (0 = Röd, 1 = Vit)
-      bits.forEach((bit, idx) => {
-        const el = rects[idx];
-        if (bit === 1) {
-          el.className = 'light-rect state-white';
-        } else {
-          el.className = 'light-rect state-red';
-        }
-      });
-
-      // Uppdatera info-texter
-      const binStr = addr.toString(2).padStart(4, '0');
-      const hexStr = '0x' + addr.toString(16).toUpperCase().padStart(2, '0');
-      const patternDesc = [bits[3], bits[2], bits[1], bits[0]]
-        .map(b => b === 1 ? 'VIT' : 'RÖD')
-        .join('  ');
-
-      valBus.textContent = `Adressbuss ${addr}`;
-      valBinary.textContent = binStr;
-      valHex.textContent = hexStr;
-      valPattern.textContent = patternDesc;
-      badgeText.textContent = `Adressbuss ${addr} vald (${binStr})`;
+      activeDataSummary.textContent = `Aktiv: Buss ${num} (${bin})`;
     }
 
-    // 3. Växla etiketter för ren OpenCV-vy
-    toggleLabelsBtn.addEventListener('click', () => {
-      targetScreen.classList.toggle('hide-labels');
-      if (targetScreen.classList.contains('hide-labels')) {
-        toggleLabelsBtn.textContent = '👁️ Visa etiketter';
+    applyCustomBtn.addEventListener('click', () => {
+      let val = customBitsInput.value.replace(/[^01]/g, '');
+      if (!val) val = '0';
+      customBitsInput.value = val;
+      currentBits = val;
+      document.querySelectorAll('.addr-btn').forEach(b => b.classList.remove('active'));
+      activeDataSummary.textContent = `Aktiv: Egen sekvens (${val})`;
+    });
+
+    /* =====================================================================
+       2. LED & HARDWARE EMULATION
+       ===================================================================== */
+    function setLedState(state) {
+      currentLedState = state ? 1 : 0;
+      if (currentLedState === 1) {
+        ledBulb.classList.add('state-on');
+        statusDot.classList.add('active');
       } else {
-        toggleLabelsBtn.textContent = '👁️ Dölj etiketter (Kameravy)';
+        ledBulb.classList.remove('state-on');
+        statusDot.classList.remove('active');
+      }
+    }
+
+    ledBulb.addEventListener('click', () => {
+      if (!isTransmitting) {
+        setLedState(!currentLedState);
+        setTimeout(() => setLedState(0), 400);
       }
     });
 
-    // 4. Auto-loop funktionalitet
-    function startLoop() {
-      const speed = parseInt(speedSelect.value, 10);
-      loopBtn.classList.add('active');
-      loopBtn.textContent = '⏹ Stoppa Auto-loop';
+    /* =====================================================================
+       3. OPTICAL TRANSMITTER ENGINE
+       ===================================================================== */
+    function transmitSequence() {
+      if (isTransmitting) return;
+      isTransmitting = true;
 
-      loopInterval = setInterval(() => {
-        const nextAddr = (currentAddress + 1) % 16;
-        setAddress(nextAddr);
-      }, speed);
-    }
+      const startDuration = config.bitDuration * config.startMultiplier;
+      const syncGapDuration = config.bitDuration;
+      const bitDuration = config.bitDuration;
+      const pauseDuration = config.pauseDuration;
+      const bits = currentBits.split('').map(Number);
 
-    function stopLoop() {
-      if (loopInterval) {
-        clearInterval(loopInterval);
-        loopInterval = null;
-        loopBtn.classList.remove('active');
-        loopBtn.textContent = '▶ Starta Auto-loop';
+      // Build array of sequence steps: { state: 1|0, duration: ms, label: string }
+      const steps = [];
+
+      // Step 1: Start Pulse (Preamble)
+      steps.push({ state: 1, duration: startDuration, label: `STARTPULS (HÖG ${startDuration}ms)` });
+      // Step 2: Sync Gap
+      steps.push({ state: 0, duration: syncGapDuration, label: `SYNK-GAP (LÅG ${syncGapDuration}ms)` });
+      // Step 3: Payload data bits
+      bits.forEach((b, idx) => {
+        steps.push({ state: b, duration: bitDuration, label: `BIT ${idx + 1}/${bits.length}: ${b === 1 ? 'HÖG (1)' : 'LÅG (0)'}` });
+      });
+      // Step 4: End Gap / Inter-packet pause
+      steps.push({ state: 0, duration: pauseDuration, label: `PAUS (${pauseDuration}ms)` });
+
+      let currentStepIndex = 0;
+
+      function executeStep() {
+        if (!isTransmitting) return;
+
+        if (currentStepIndex >= steps.length) {
+          // Finished this sequence
+          if (isLooping) {
+            currentStepIndex = 0;
+            executeStep();
+          } else {
+            stopTransmission();
+            statusText.textContent = "KLAR (IDLE)";
+          }
+          return;
+        }
+
+        const step = steps[currentStepIndex];
+        setLedState(step.state);
+        statusText.textContent = step.label;
+        currentStepIndex++;
+
+        sequenceTimer = setTimeout(executeStep, step.duration);
       }
+
+      executeStep();
     }
+
+    function stopTransmission() {
+      isTransmitting = false;
+      isLooping = false;
+      if (sequenceTimer) {
+        clearTimeout(sequenceTimer);
+        sequenceTimer = null;
+      }
+      setLedState(0);
+      statusText.textContent = "VILO-LÄGE (IDLE)";
+      loopBtn.classList.remove('active');
+      loopBtn.innerHTML = "🔁 Loopa kontinuerligt";
+    }
+
+    sendOnceBtn.addEventListener('click', () => {
+      stopTransmission();
+      transmitSequence();
+    });
 
     loopBtn.addEventListener('click', () => {
-      if (loopInterval) {
-        stopLoop();
+      if (isLooping) {
+        stopTransmission();
       } else {
-        startLoop();
+        stopTransmission();
+        isLooping = true;
+        loopBtn.classList.add('active');
+        loopBtn.innerHTML = "⏹ Stoppa Loop";
+        transmitSequence();
       }
     });
 
-    speedSelect.addEventListener('change', () => {
-      if (loopInterval) {
-        stopLoop();
-        startLoop();
+    stopBtn.addEventListener('click', stopTransmission);
+
+    /* =====================================================================
+       4. REALTIME OSCILLOSCOPE CANVAS
+       ===================================================================== */
+    function renderWaveform() {
+      // Shift left and append current LED state
+      waveHistory.shift();
+      waveHistory.push(currentLedState);
+
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      waveCtx.clearRect(0, 0, w, h);
+
+      // Grid background lines
+      waveCtx.strokeStyle = "#101b30";
+      waveCtx.lineWidth = 1;
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, h * 0.2); waveCtx.lineTo(w, h * 0.2);
+      waveCtx.moveTo(0, h * 0.8); waveCtx.lineTo(w, h * 0.8);
+      waveCtx.stroke();
+
+      // Signal line
+      waveCtx.strokeStyle = currentLedState ? "#38bdf8" : "#0284c7";
+      waveCtx.lineWidth = 2.5;
+      waveCtx.shadowColor = currentLedState ? "#38bdf8" : "transparent";
+      waveCtx.shadowBlur = currentLedState ? 8 : 0;
+      waveCtx.beginPath();
+
+      const stepX = w / (waveHistory.length - 1);
+      for (let i = 0; i < waveHistory.length; i++) {
+        const x = i * stepX;
+        const val = waveHistory[i];
+        // 1 is near top (h * 0.2), 0 is near bottom (h * 0.8)
+        const y = val === 1 ? h * 0.22 : h * 0.78;
+        if (i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+      waveCtx.shadowBlur = 0;
+
+      requestAnimationFrame(renderWaveform);
+    }
+    renderWaveform();
+
+    /* =====================================================================
+       5. TIMING CONTROLS & FPS ESTIMATOR
+       ===================================================================== */
+    function updateTimingDisplay() {
+      config.bitDuration = parseInt(bitDurationSlider.value, 10);
+      config.startMultiplier = parseInt(startPulseSlider.value, 10);
+      config.pauseDuration = parseInt(pauseSlider.value, 10);
+
+      bitDurationVal.textContent = `${config.bitDuration} ms`;
+      const baud = (1000 / config.bitDuration).toFixed(1);
+      baudRateVal.textContent = `${baud} baud (bit/s)`;
+
+      const startMs = config.bitDuration * config.startMultiplier;
+      startPulseVal.textContent = `${config.startMultiplier}x (${startMs} ms)`;
+      pauseVal.textContent = `${config.pauseDuration} ms`;
+
+      // Calculate camera frames per bit
+      const framesAt30 = ((config.bitDuration / 1000) * 30).toFixed(1);
+      const framesAt60 = ((config.bitDuration / 1000) * 60).toFixed(1);
+
+      let healthNote = "🟢 Mycket pålitlig avläsning";
+      if (framesAt30 < 2.0) {
+        healthNote = "🔴 Risk för bit-bortfall på 30 FPS! Kräver 60 FPS eller högre";
+      } else if (framesAt30 < 3.5) {
+        healthNote = "🟡 Snabb takt; säkerställ stabil FPS och god exponering";
+      }
+
+      fpsHelper.innerHTML = `ℹ️ Vid <strong>${config.bitDuration} ms</strong> får en 30 FPS-kamera ~<strong>${framesAt30}</strong> rutor/bit och en 60 FPS-kamera ~<strong>${framesAt60}</strong> rutor/bit. (${healthNote}).`;
+    }
+
+    bitDurationSlider.addEventListener('input', updateTimingDisplay);
+    startPulseSlider.addEventListener('input', updateTimingDisplay);
+    pauseSlider.addEventListener('input', updateTimingDisplay);
+
+    window.applyPreset = function(bitMs, startMul, pauseMs) {
+      bitDurationSlider.value = bitMs;
+      startPulseSlider.value = startMul;
+      pauseSlider.value = pauseMs;
+      updateTimingDisplay();
+    };
+
+    updateTimingDisplay();
+
+    /* =====================================================================
+       6. FULLSCREEN / KAMERALÄGE
+       ===================================================================== */
+    function toggleFullscreenMode() {
+      viewport.classList.toggle('fullscreen-mode');
+      const isFs = viewport.classList.contains('fullscreen-mode');
+      fsHint.style.display = isFs ? 'block' : 'none';
+      toggleFsBtn.textContent = isFs ? '✕ Avsluta kameraläge' : '⛶ Kameraläge (Helskärm)';
+    }
+
+    toggleFsBtn.addEventListener('click', toggleFullscreenMode);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && viewport.classList.contains('fullscreen-mode')) {
+        toggleFullscreenMode();
       }
     });
 
-    // Initiera med Adressbuss 0
-    setAddress(0);
+    viewport.addEventListener('click', (e) => {
+      if (viewport.classList.contains('fullscreen-mode') && e.target === viewport) {
+        toggleFullscreenMode();
+      }
+    });
+
+    /* =====================================================================
+       7. PATTERN MANAGER (LOCALSTORAGE & JSON)
+       ===================================================================== */
+    const STORAGE_KEY = 'optical_bus_saved_patterns_v2';
+
+    const DEFAULT_PATTERNS = [
+      { id: '1', name: 'Buss 15 (Standard 30 FPS)', bits: '1111', bitDuration: 200, startMultiplier: 3, pauseDuration: 800 },
+      { id: '2', name: 'Buss 5 Växlande (1010)', bits: '0101', bitDuration: 200, startMultiplier: 3, pauseDuration: 800 },
+      { id: '3', name: 'Buss 0 Nollställd', bits: '0000', bitDuration: 250, startMultiplier: 3, pauseDuration: 1000 },
+      { id: '4', name: 'Höghastighets-Beacon (8-bit)', bits: '10101010', bitDuration: 100, startMultiplier: 4, pauseDuration: 600 }
+    ];
+
+    function getSavedPatterns() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error("Fel vid läsning från localStorage", e);
+      }
+      return DEFAULT_PATTERNS;
+    }
+
+    function savePatternsToStorage(patterns) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(patterns));
+      } catch (e) {
+        alert("Kunde inte spara till webbläsarens minne!");
+      }
+      renderPatternList();
+    }
+
+    function renderPatternList() {
+      const patterns = getSavedPatterns();
+      patternList.innerHTML = '';
+
+      if (patterns.length === 0) {
+        patternList.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:10px 0;">Inga sparade mönster ännu.</div>';
+        return;
+      }
+
+      patterns.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'pattern-item';
+        item.innerHTML = `
+          <div class="pattern-item-info">
+            <span class="pattern-item-name">${escapeHtml(p.name)}</span>
+            <span class="pattern-item-meta">Kod: [${p.bits}] &bull; ${p.bitDuration}ms &bull; Start: ${p.startMultiplier}x &bull; Paus: ${p.pauseDuration}ms</span>
+          </div>
+          <div class="pattern-item-actions">
+            <button class="btn btn-outline btn-sm" onclick="loadPattern('${p.id}')">Ladda</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePattern('${p.id}')">✕</button>
+          </div>
+        `;
+        patternList.appendChild(item);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    window.loadPattern = function(id) {
+      const patterns = getSavedPatterns();
+      const p = patterns.find(item => item.id === id);
+      if (!p) return;
+
+      currentBits = p.bits;
+      customBitsInput.value = p.bits;
+      activeDataSummary.textContent = `Aktiv: "${p.name}" (${p.bits})`;
+
+      // Update timing
+      bitDurationSlider.value = p.bitDuration;
+      startPulseSlider.value = p.startMultiplier;
+      pauseSlider.value = p.pauseDuration;
+      updateTimingDisplay();
+
+      // Highlight matching address button if it is 4-bit standard
+      const intVal = parseInt(p.bits, 2);
+      if (!isNaN(intVal) && intVal >= 0 && intVal <= 15 && p.bits.length === 4) {
+        document.querySelectorAll('.addr-btn').forEach((b, idx) => {
+          b.classList.toggle('active', idx === intVal);
+        });
+      } else {
+        document.querySelectorAll('.addr-btn').forEach(b => b.classList.remove('active'));
+      }
+    };
+
+    window.deletePattern = function(id) {
+      if (!confirm("Vill du ta bort detta mönster?")) return;
+      const patterns = getSavedPatterns().filter(p => p.id !== id);
+      savePatternsToStorage(patterns);
+    };
+
+    savePatternBtn.addEventListener('click', () => {
+      const name = patternNameInput.value.trim() || `Mönster ${currentBits} (${config.bitDuration}ms)`;
+      const newPattern = {
+        id: Date.now().toString(),
+        name: name,
+        bits: currentBits,
+        bitDuration: config.bitDuration,
+        startMultiplier: config.startMultiplier,
+        pauseDuration: config.pauseDuration
+      };
+
+      const patterns = getSavedPatterns();
+      patterns.unshift(newPattern);
+      savePatternsToStorage(patterns);
+      patternNameInput.value = '';
+    });
+
+    // Export JSON
+    exportBtn.addEventListener('click', () => {
+      const patterns = getSavedPatterns();
+      const blob = new Blob([JSON.stringify(patterns, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `optical_patterns_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Import JSON
+    importBtn.addEventListener('click', () => importFileInput.click());
+
+    importFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const imported = JSON.parse(event.target.result);
+          if (Array.isArray(imported)) {
+            const current = getSavedPatterns();
+            // Merge unique
+            const merged = [...imported, ...current];
+            savePatternsToStorage(merged);
+            alert(`Importerade ${imported.length} mönster!`);
+          } else {
+            alert("Ogiltigt JSON-format.");
+          }
+        } catch (err) {
+          alert("Kunde inte läsa JSON-filen.");
+        }
+      };
+      reader.readAsText(file);
+      importFileInput.value = '';
+    });
+
+    resetDefaultsBtn.addEventListener('click', () => {
+      if (confirm("Vill du återställa till standardmönstren?")) {
+        savePatternsToStorage(DEFAULT_PATTERNS);
+      }
+    });
+
+    renderPatternList();
   </script>
 </body>
 </html>
