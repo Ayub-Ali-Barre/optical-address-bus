@@ -679,6 +679,20 @@
           </div>
         </div>
 
+        <!-- Stop Pulse Multiplier -->
+        <div class="control-group">
+          <div class="control-header">
+            <label for="stopPulseSlider">Slutsignal (Stopp-puls):</label>
+            <span class="val-display" id="stopPulseVal">2x (400 ms)</span>
+          </div>
+          <input type="range" id="stopPulseSlider" min="0" max="4" step="1" value="2">
+          <div class="range-limits">
+            <span>0 (Inaktiverad)</span>
+            <span>Avslutning</span>
+            <span>4x bit-tid</span>
+          </div>
+        </div>
+
         <!-- Pause Duration -->
         <div class="control-group">
           <div class="control-header">
@@ -697,10 +711,10 @@
       <!-- Presets -->
       <div class="presets-row">
         <span style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Snabbval:</span>
-        <button class="preset-chip" onclick="applyPreset(400, 3, 1000)">Långsam (400 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(200, 3, 800)">Standard 30 FPS (200 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(100, 3, 500)">Snabb 60 FPS (100 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(50, 4, 300)">Turbo 120 FPS (50 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(400, 3, 2, 1000)">Långsam (400 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(200, 3, 2, 800)">Standard 30 FPS (200 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(100, 3, 2, 500)">Snabb 60 FPS (100 ms)</button>
+        <button class="preset-chip" onclick="applyPreset(50, 4, 2, 300)">Turbo 120 FPS (50 ms)</button>
       </div>
 
       <!-- Camera margin helper -->
@@ -752,6 +766,7 @@
     let config = {
       bitDuration: 200,      // ms
       startMultiplier: 3,    // 3x bitDuration
+      stopMultiplier: 2,     // 2x bitDuration (0 = disabled)
       pauseDuration: 800     // ms
     };
 
@@ -776,6 +791,8 @@
     const baudRateVal = document.getElementById('baudRateVal');
     const startPulseSlider = document.getElementById('startPulseSlider');
     const startPulseVal = document.getElementById('startPulseVal');
+    const stopPulseSlider = document.getElementById('stopPulseSlider');
+    const stopPulseVal = document.getElementById('stopPulseVal');
     const pauseSlider = document.getElementById('pauseSlider');
     const pauseVal = document.getElementById('pauseVal');
     const fpsHelper = document.getElementById('fpsHelper');
@@ -868,13 +885,23 @@
       const steps = [];
 
       // Step 1: Start Pulse (Preamble)
-      steps.push({ state: 1, duration: startDuration, label: `STARTPULS (HÖG ${startDuration}ms)` });
-      // Step 2: Sync Gap
-      steps.push({ state: 0, duration: syncGapDuration, label: `SYNK-GAP (LÅG ${syncGapDuration}ms)` });
-      // Step 3: Payload data bits
+      if (config.startMultiplier > 0) {
+        steps.push({ state: 1, duration: startDuration, label: `STARTPULS (HÖG ${startDuration}ms)` });
+        steps.push({ state: 0, duration: syncGapDuration, label: `SYNK-GAP (LÅG ${syncGapDuration}ms)` });
+      }
+
+      // Step 2: Payload data bits
       bits.forEach((b, idx) => {
         steps.push({ state: b, duration: bitDuration, label: `BIT ${idx + 1}/${bits.length}: ${b === 1 ? 'HÖG (1)' : 'LÅG (0)'}` });
       });
+
+      // Step 3: Stop Signal (Stopp-puls)
+      if (config.stopMultiplier > 0) {
+        const stopDuration = config.bitDuration * config.stopMultiplier;
+        steps.push({ state: 1, duration: stopDuration, label: `SLUTSIGNAL (HÖG ${stopDuration}ms)` });
+        steps.push({ state: 0, duration: bitDuration, label: `SLUT-GAP (LÅG ${bitDuration}ms)` });
+      }
+
       // Step 4: End Gap / Inter-packet pause
       steps.push({ state: 0, duration: pauseDuration, label: `PAUS (${pauseDuration}ms)` });
 
@@ -987,6 +1014,7 @@
     function updateTimingDisplay() {
       config.bitDuration = parseInt(bitDurationSlider.value, 10);
       config.startMultiplier = parseInt(startPulseSlider.value, 10);
+      config.stopMultiplier = parseInt(stopPulseSlider.value, 10);
       config.pauseDuration = parseInt(pauseSlider.value, 10);
 
       bitDurationVal.textContent = `${config.bitDuration} ms`;
@@ -994,7 +1022,15 @@
       baudRateVal.textContent = `${baud} baud (bit/s)`;
 
       const startMs = config.bitDuration * config.startMultiplier;
-      startPulseVal.textContent = `${config.startMultiplier}x (${startMs} ms)`;
+      startPulseVal.textContent = config.startMultiplier > 0 
+        ? `${config.startMultiplier}x (${startMs} ms)` 
+        : `Inaktiverad (0 ms)`;
+
+      const stopMs = config.bitDuration * config.stopMultiplier;
+      stopPulseVal.textContent = config.stopMultiplier > 0 
+        ? `${config.stopMultiplier}x (${stopMs} ms)` 
+        : `Inaktiverad (0 ms)`;
+
       pauseVal.textContent = `${config.pauseDuration} ms`;
 
       // Calculate camera frames per bit
@@ -1013,11 +1049,13 @@
 
     bitDurationSlider.addEventListener('input', updateTimingDisplay);
     startPulseSlider.addEventListener('input', updateTimingDisplay);
+    stopPulseSlider.addEventListener('input', updateTimingDisplay);
     pauseSlider.addEventListener('input', updateTimingDisplay);
 
-    window.applyPreset = function(bitMs, startMul, pauseMs) {
+    window.applyPreset = function(bitMs, startMul, stopMul, pauseMs) {
       bitDurationSlider.value = bitMs;
       startPulseSlider.value = startMul;
+      stopPulseSlider.value = stopMul !== undefined ? stopMul : 2;
       pauseSlider.value = pauseMs;
       updateTimingDisplay();
     };
@@ -1054,10 +1092,10 @@
     const STORAGE_KEY = 'optical_bus_saved_patterns_v2';
 
     const DEFAULT_PATTERNS = [
-      { id: '1', name: 'Buss 15 (Standard 30 FPS)', bits: '1111', bitDuration: 200, startMultiplier: 3, pauseDuration: 800 },
-      { id: '2', name: 'Buss 5 Växlande (1010)', bits: '0101', bitDuration: 200, startMultiplier: 3, pauseDuration: 800 },
-      { id: '3', name: 'Buss 0 Nollställd', bits: '0000', bitDuration: 250, startMultiplier: 3, pauseDuration: 1000 },
-      { id: '4', name: 'Höghastighets-Beacon (8-bit)', bits: '10101010', bitDuration: 100, startMultiplier: 4, pauseDuration: 600 }
+      { id: '1', name: 'Buss 15 (Standard 30 FPS)', bits: '1111', bitDuration: 200, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 800 },
+      { id: '2', name: 'Buss 5 Växlande (1010)', bits: '0101', bitDuration: 200, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 800 },
+      { id: '3', name: 'Buss 0 Nollställd', bits: '0000', bitDuration: 250, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 1000 },
+      { id: '4', name: 'Höghastighets-Beacon (8-bit)', bits: '10101010', bitDuration: 100, startMultiplier: 4, stopMultiplier: 2, pauseDuration: 600 }
     ];
 
     function getSavedPatterns() {
@@ -1089,12 +1127,13 @@
       }
 
       patterns.forEach(p => {
+        const stopText = (p.stopMultiplier !== undefined && p.stopMultiplier > 0) ? `${p.stopMultiplier}x` : 'Av';
         const item = document.createElement('div');
         item.className = 'pattern-item';
         item.innerHTML = `
           <div class="pattern-item-info">
             <span class="pattern-item-name">${escapeHtml(p.name)}</span>
-            <span class="pattern-item-meta">Kod: [${p.bits}] &bull; ${p.bitDuration}ms &bull; Start: ${p.startMultiplier}x &bull; Paus: ${p.pauseDuration}ms</span>
+            <span class="pattern-item-meta">Kod: [${p.bits}] &bull; ${p.bitDuration}ms &bull; Start: ${p.startMultiplier}x &bull; Slut: ${stopText} &bull; Paus: ${p.pauseDuration}ms</span>
           </div>
           <div class="pattern-item-actions">
             <button class="btn btn-outline btn-sm" onclick="loadPattern('${p.id}')">Ladda</button>
@@ -1121,6 +1160,7 @@
       // Update timing
       bitDurationSlider.value = p.bitDuration;
       startPulseSlider.value = p.startMultiplier;
+      stopPulseSlider.value = p.stopMultiplier !== undefined ? p.stopMultiplier : 2;
       pauseSlider.value = p.pauseDuration;
       updateTimingDisplay();
 
@@ -1149,6 +1189,7 @@
         bits: currentBits,
         bitDuration: config.bitDuration,
         startMultiplier: config.startMultiplier,
+        stopMultiplier: config.stopMultiplier,
         pauseDuration: config.pauseDuration
       };
 

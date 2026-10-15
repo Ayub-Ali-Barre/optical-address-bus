@@ -16,7 +16,8 @@ Simulatorn sänder data och adressbussar genom en enda optisk LED-lampa som blin
 
 ### 2. Full Kontroll över Takt & Tajming
 - **Bit-duration (30 – 1000 ms):** Justera exakt klocktakt i millisekunder eller välj snabbknappar (400ms, 200ms, 100ms, 50ms).
-- **Startpuls (1x – 6x bit-tid):** Preamble-signal med hög puls för att synkronisera kamerans klocka.
+- **Startpuls (1x – 6x bit-tid):** Preamble-signal med hög puls för att synkronisera kamerans klocka (standard 3x).
+- **Slutsignal (1x – 4x bit-tid):** Dedikerad stopp-puls för att markera paketets slut och särskilja avslutande nollor från pauser (standard 2x).
 - **Paus mellan paket (100 – 3000 ms):** Inter-paket-gap vid kontinuerlig loopning.
 - **FPS-kalkylator:** Beräknar i realtid hur många bildrutor en 30 FPS och 60 FPS webbkamera fångar per bit.
 
