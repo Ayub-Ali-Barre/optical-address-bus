@@ -14,13 +14,12 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #0284c7;
-      --accent-glow: rgba(2, 132, 199, 0.4);
       --led-off-bg: radial-gradient(circle at 35% 35%, #0f1c30 0%, #060b14 70%);
       --led-off-border: #182846;
       --led-off-glow: inset 0 3px 8px rgba(0,0,0,0.8);
-      --led-on-bg: radial-gradient(circle at 45% 45%, #ffffff 0%, #bae6fd 20%, #38bdf8 50%, #0284c7 80%, #0369a1 100%);
-      --led-on-border: #e0f2fe;
-      --led-on-glow: 0 0 35px #38bdf8, 0 0 80px #0284c7, 0 0 140px rgba(14, 165, 233, 0.7);
+      --led-on-bg: radial-gradient(circle at 45% 45%, #e0f2fe 0%, #7dd3fc 25%, #38bdf8 55%, #0284c7 85%, #0369a1 100%);
+      --led-on-border: #bae6fd;
+      --led-on-glow: 0 0 24px rgba(56, 189, 248, 0.85), 0 0 60px rgba(2, 132, 199, 0.55);
     }
 
     * {
@@ -66,7 +65,6 @@
       font-size: 0.95rem;
     }
 
-    /* CARD STYLING */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -82,15 +80,49 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
       color: #f1f5f9;
     }
 
-    /* OPTICAL VIEWPORT (THE LED STAGE) */
+    /* MODE TABS */
+    .mode-tabs {
+      display: inline-flex;
+      background: #080d1a;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+      align-self: center;
+    }
+
+    .mode-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 9px 16px;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .mode-tab:hover {
+      color: var(--text-main);
+    }
+
+    .mode-tab.active {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* OPTICAL VIEWPORT */
     .viewport {
       background: #000000;
       border: 2px solid #17223b;
       border-radius: 12px;
-      min-height: 280px;
+      min-height: 290px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -104,15 +136,14 @@
       position: absolute;
       top: 14px;
       right: 14px;
-      background: rgba(20, 30, 52, 0.8);
+      background: rgba(20, 30, 52, 0.85);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 0.8rem;
       cursor: pointer;
-      backdrop-filter: blur(4px);
-      transition: all 0.2s;
+      transition: all 0.15s;
       z-index: 10;
     }
 
@@ -122,20 +153,35 @@
       border-color: var(--accent);
     }
 
-    /* THE LED BULB */
+    .fs-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(14, 21, 38, 0.8);
+      border: 1px solid #1e293b;
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      display: none;
+      z-index: 10;
+    }
+
+    /* THE LED BULB - NO CSS TRANSITION for crisp optical edges */
     .led-wrapper {
       position: relative;
       margin: 15px 0 25px;
     }
 
     .led-bulb {
-      width: 140px;
-      height: 140px;
+      width: 148px;
+      height: 148px;
       border-radius: 50%;
       background: var(--led-off-bg);
       border: 4px solid var(--led-off-border);
       box-shadow: var(--led-off-glow);
-      transition: background 0.05s ease, border-color 0.05s ease, box-shadow 0.05s ease;
+      transition: none;
       cursor: pointer;
     }
 
@@ -145,7 +191,6 @@
       box-shadow: var(--led-on-glow);
     }
 
-    /* STATUS BANNER UNDER LED */
     .signal-status-bar {
       display: flex;
       align-items: center;
@@ -162,7 +207,6 @@
       height: 10px;
       border-radius: 50%;
       background: #475569;
-      transition: background 0.1s ease, box-shadow 0.1s ease;
     }
 
     .status-dot.active {
@@ -172,14 +216,13 @@
 
     .status-text {
       font-weight: 600;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       color: #cbd5e1;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
     /* REALTIME OSCILLOSCOPE CANVAS */
     .waveform-card {
-      margin-top: 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -194,12 +237,11 @@
       display: block;
     }
 
-    /* PRIMARY CONTROLS (SEND, LOOP, STOP) */
+    /* PRIMARY CONTROLS */
     .action-row {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 10px;
     }
 
     .btn {
@@ -238,12 +280,7 @@
     .btn-success.active {
       background: #059669;
       border-color: #34d399;
-      animation: pulseGreen 1.5s infinite;
-    }
-
-    @keyframes pulseGreen {
-      0%, 100% { box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); }
-      50% { box-shadow: 0 0 22px rgba(52, 211, 153, 0.8); }
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.45);
     }
 
     .btn-danger {
@@ -268,11 +305,110 @@
       border-color: #38bdf8;
     }
 
-    /* TIMING CONTROLS SECTION */
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    /* ADDRESS SELECTION */
+    .address-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .addr-btn {
+      background: #121c33;
+      border: 1px solid #223456;
+      color: var(--text-main);
+      padding: 10px 6px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s;
+    }
+
+    .addr-btn .sub-bin {
+      font-size: 0.65rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text-muted);
+      letter-spacing: 0.2px;
+    }
+
+    .addr-btn:hover {
+      background: #1d2d50;
+      border-color: #38bdf8;
+    }
+
+    .addr-btn.active {
+      background: #0284c7;
+      border-color: #7dd3fc;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.55);
+    }
+
+    .addr-btn.active .sub-bin {
+      color: #e0f2fe;
+    }
+
+    .codebook-note {
+      background: rgba(2, 132, 199, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: #bae6fd;
+      line-height: 1.45;
+    }
+
+    /* CUSTOM BIT INPUT */
+    .custom-input-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #090f1e;
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+
+    .custom-input-box label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .custom-input-box input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      background: #141f36;
+      border: 1px solid #283a60;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      letter-spacing: 2px;
+    }
+
+    .custom-input-box input[type="text"]:focus {
+      outline: none;
+      border-color: #38bdf8;
+    }
+
+    /* TIMING CONTROLS */
     .timing-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
+      gap: 16px;
       margin-top: 10px;
     }
 
@@ -321,7 +457,6 @@
       color: var(--text-muted);
     }
 
-    /* PRESETS ROW */
     .presets-row {
       display: flex;
       gap: 8px;
@@ -342,13 +477,13 @@
       transition: all 0.15s;
     }
 
-    .preset-chip:hover {
+    .preset-chip:hover,
+    .preset-chip.active {
       background: #1e3157;
       border-color: #38bdf8;
       color: #ffffff;
     }
 
-    /* CAMERA FPS MARGIN BOX */
     .fps-helper {
       background: rgba(2, 132, 199, 0.08);
       border: 1px dashed rgba(56, 189, 248, 0.3);
@@ -357,92 +492,10 @@
       font-size: 0.82rem;
       color: #bae6fd;
       margin-top: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      line-height: 1.45;
     }
 
-    /* ADDRESS BUS SELECTION */
-    .address-buttons {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .addr-btn {
-      background: #121c33;
-      border: 1px solid #223456;
-      color: var(--text-main);
-      padding: 10px 6px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      transition: all 0.15s;
-    }
-
-    .addr-btn .sub-bin {
-      font-size: 0.68rem;
-      font-family: monospace;
-      color: var(--text-muted);
-    }
-
-    .addr-btn:hover {
-      background: #1d2d50;
-      border-color: #38bdf8;
-    }
-
-    .addr-btn.active {
-      background: #0284c7;
-      border-color: #7dd3fc;
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
-    }
-
-    .addr-btn.active .sub-bin {
-      color: #e0f2fe;
-    }
-
-    /* CUSTOM BIT INPUT */
-    .custom-input-box {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      background: #090f1e;
-      border: 1px solid var(--border-color);
-      padding: 10px 14px;
-      border-radius: 8px;
-    }
-
-    .custom-input-box label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-    }
-
-    .custom-input-box input[type="text"] {
-      flex: 1;
-      background: #141f36;
-      border: 1px solid #283a60;
-      color: #38bdf8;
-      font-family: monospace;
-      font-size: 1.05rem;
-      padding: 8px 12px;
-      border-radius: 6px;
-      letter-spacing: 2px;
-    }
-
-    .custom-input-box input[type="text"]:focus {
-      outline: none;
-      border-color: #38bdf8;
-    }
-
-    /* PATTERN MANAGER (STORAGE) */
+    /* SAVED PATTERNS */
     .pattern-save-row {
       display: flex;
       gap: 10px;
@@ -509,12 +562,6 @@
       gap: 6px;
     }
 
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      border-radius: 6px;
-    }
-
     .storage-footer {
       display: flex;
       justify-content: space-between;
@@ -525,7 +572,7 @@
       flex-wrap: wrap;
     }
 
-    /* FULLSCREEN OVERLAY FOR CAMERA VIEW */
+    /* FULLSCREEN CAMERA MODE */
     .fullscreen-mode {
       position: fixed !important;
       inset: 0 !important;
@@ -543,13 +590,21 @@
     }
 
     .fullscreen-mode .led-bulb {
-      width: min(60vmin, 440px);
-      height: min(60vmin, 440px);
-      border-width: 6px;
+      width: min(46vmin, 320px);
+      height: min(46vmin, 320px);
+      border-width: 5px;
     }
 
     .fullscreen-mode .led-bulb.state-on {
-      box-shadow: 0 0 50px #38bdf8, 0 0 110px #0284c7, 0 0 220px rgba(14, 165, 233, 0.85);
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.75), 0 0 70px rgba(2, 132, 199, 0.45);
+    }
+
+    .fullscreen-mode .signal-status-bar {
+      display: none;
+    }
+
+    .fullscreen-mode .fs-badge {
+      display: block;
     }
 
     .fullscreen-exit-hint {
@@ -557,12 +612,16 @@
       bottom: 24px;
       color: #334155;
       font-size: 0.85rem;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+    }
+
+    .hidden {
+      display: none !important;
     }
 
     @media (max-width: 768px) {
       .address-buttons {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
     }
   </style>
@@ -572,32 +631,54 @@
   <div class="container">
     <header>
       <h1>Optisk LED-Transmitter & Timing-Simulator</h1>
-      <p>Blinkar data och adressbussar optiskt med anpassningsbar klocktakt och mönsterlagring</p>
+      <p>Kontinuerlig 16-stegs kodtabell (adress 1–15) för direkt testning mot mobilappen och led_decoder.py</p>
     </header>
+
+    <!-- MODE SWITCHER -->
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" id="tabCodebook" role="tab" aria-selected="true">
+        16-stegs kodtabell (App-läge)
+      </button>
+      <button class="mode-tab" id="tabCustom" role="tab" aria-selected="false">
+        Anpassat paketläge (Start/Stopp)
+      </button>
+    </div>
 
     <!-- OPTICAL VIEWPORT -->
     <div class="viewport" id="viewport">
-      <button class="fullscreen-btn" id="toggleFsBtn" title="Växla till rent helskärmsläge för datorseende">
+      <div class="fs-badge" id="fsBadge">Adress 1 · 50 ms</div>
+      <button class="fullscreen-btn" id="toggleFsBtn" title="Växla till rent helskärmsläge för kameratestning">
         Kameraläge (Helskärm)
       </button>
 
-      <!-- LED LAMP -->
       <div class="led-wrapper">
         <div class="led-bulb" id="ledBulb" title="Klicka för manuellt test"></div>
       </div>
 
-      <!-- STATUS BAR -->
       <div class="signal-status-bar">
         <div class="status-dot" id="statusDot"></div>
         <span class="status-text" id="statusText">VILO-LÄGE (IDLE)</span>
       </div>
 
       <div class="fullscreen-exit-hint" id="fsHint" style="display:none;">
-        Tryck ESC eller klicka på skärmen för att avsluta kameraläget
+        Tryck ESC eller klicka utanför lampan för att avsluta kameraläget
       </div>
     </div>
 
-    <!-- REALTIME OSCILLOSCOPE / TIMELINE -->
+    <!-- PRIMARY ACTION BUTTONS -->
+    <div class="action-row">
+      <button class="btn btn-success" id="loopBtn">
+        Starta kontinuerlig sändning
+      </button>
+      <button class="btn btn-primary" id="sendOnceBtn">
+        Sänd en cykel
+      </button>
+      <button class="btn btn-danger" id="stopBtn">
+        Stoppa
+      </button>
+    </div>
+
+    <!-- REALTIME OSCILLOSCOPE -->
     <div class="card waveform-card">
       <div class="card-title">
         <span>Signalspår i realtid (Oscilloskop)</span>
@@ -608,36 +689,30 @@
       <canvas class="waveform-canvas" id="waveCanvas" width="900" height="70"></canvas>
     </div>
 
-    <!-- PRIMARY ACTION BUTTONS -->
-    <div class="action-row">
-      <button class="btn btn-primary" id="sendOnceBtn">
-        Sänd en gång
-      </button>
-      <button class="btn btn-success" id="loopBtn">
-        Loopa kontinuerligt
-      </button>
-      <button class="btn btn-danger" id="stopBtn">
-        Stoppa
-      </button>
-    </div>
-
-    <!-- DATA & ADDRESS BUS SELECTION -->
+    <!-- DATA & ADDRESS SELECTION -->
     <div class="card">
       <div class="card-title">
-        <span>Välj data som ska sändas</span>
-        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;" id="activeDataSummary">
-          Aktiv: Buss 15 (1111)
+        <span id="dataCardHeading">Välj adress (16-stegs kodtabell 1–15)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal; font-family:monospace;" id="activeDataSummary">
+          Aktiv: Adress 1 (0010011001110011)
         </span>
       </div>
 
-      <div class="address-buttons" id="addrBtnContainer">
-        <!-- Genereras dynamiskt (0–15) -->
+      <!-- Codebook 1-15 buttons -->
+      <div id="codebookSection">
+        <div class="address-buttons" id="addrBtnContainer"></div>
+        <div class="codebook-note">
+          Sänder samma kontinuerliga 16-symbolsmönster som mobilappen och <code>led_decoder.py</code> förväntar sig – utan startpuls, slutsignal eller paus. Klicka på valfri adress för att byta direkt under pågående sändning.
+        </div>
       </div>
 
-      <div class="custom-input-box">
-        <label for="customBitsInput">Valfri binär sekvens:</label>
-        <input type="text" id="customBitsInput" value="1111" maxlength="32" placeholder="T.ex. 10110011" spellcheck="false">
-        <button class="btn btn-outline btn-sm" id="applyCustomBtn">Tillämpa</button>
+      <!-- Custom packet input -->
+      <div id="customSection" class="hidden">
+        <div class="custom-input-box">
+          <label for="customBitsInput">Valfri binär sekvens:</label>
+          <input type="text" id="customBitsInput" value="0010011001110011" maxlength="32" placeholder="T.ex. 10110011" spellcheck="false">
+          <button class="btn btn-outline btn-sm" id="applyCustomBtn">Tillämpa</button>
+        </div>
       </div>
     </div>
 
@@ -646,100 +721,92 @@
       <div class="card-title">
         <span>Takt- & Tajming-konfiguration</span>
         <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">
-          Finkänslig kontroll i millisekunder
+          Faslåst klocka via <code>performance.now()</code> utan drift
         </span>
       </div>
 
       <div class="timing-grid">
-        <!-- Bit duration -->
+        <!-- Symbol duration -->
         <div class="control-group">
           <div class="control-header">
-            <label for="bitDurationSlider">Bit-duration (Klocktakt):</label>
-            <span class="val-display" id="bitDurationVal">200 ms</span>
+            <label for="bitDurationSlider">Symboltid (ms/symbol):</label>
+            <span class="val-display" id="bitDurationVal">50 ms</span>
           </div>
-          <input type="range" id="bitDurationSlider" min="30" max="1000" step="10" value="200">
+          <input type="range" id="bitDurationSlider" min="30" max="500" step="10" value="50">
           <div class="range-limits">
-            <span>30 ms (Snabb)</span>
-            <span id="baudRateVal">5.0 baud (bit/s)</span>
-            <span>1000 ms (Långsam)</span>
+            <span>30 ms</span>
+            <span id="baudRateVal">20.0 sym/s (cykel 800 ms)</span>
+            <span>500 ms</span>
           </div>
         </div>
 
-        <!-- Start Pulse Multiplier -->
-        <div class="control-group">
+        <!-- Packet-only controls (hidden in codebook mode) -->
+        <div class="control-group packet-only hidden">
           <div class="control-header">
             <label for="startPulseSlider">Startpuls (Preamble):</label>
-            <span class="val-display" id="startPulseVal">3x (600 ms)</span>
+            <span class="val-display" id="startPulseVal">3x (150 ms)</span>
           </div>
-          <input type="range" id="startPulseSlider" min="1" max="6" step="1" value="3">
+          <input type="range" id="startPulseSlider" min="0" max="6" step="1" value="3">
           <div class="range-limits">
-            <span>1x bit-tid</span>
+            <span>0 (Av)</span>
             <span>Synkronisering</span>
-            <span>6x bit-tid</span>
+            <span>6x</span>
           </div>
         </div>
 
-        <!-- Stop Pulse Multiplier -->
-        <div class="control-group">
+        <div class="control-group packet-only hidden">
           <div class="control-header">
             <label for="stopPulseSlider">Slutsignal (Stopp-puls):</label>
-            <span class="val-display" id="stopPulseVal">2x (400 ms)</span>
+            <span class="val-display" id="stopPulseVal">2x (100 ms)</span>
           </div>
           <input type="range" id="stopPulseSlider" min="0" max="4" step="1" value="2">
           <div class="range-limits">
-            <span>0 (Inaktiverad)</span>
+            <span>0 (Av)</span>
             <span>Avslutning</span>
-            <span>4x bit-tid</span>
+            <span>4x</span>
           </div>
         </div>
 
-        <!-- Pause Duration -->
-        <div class="control-group">
+        <div class="control-group packet-only hidden">
           <div class="control-header">
             <label for="pauseSlider">Paus mellan sändningar:</label>
             <span class="val-display" id="pauseVal">800 ms</span>
           </div>
-          <input type="range" id="pauseSlider" min="100" max="3000" step="50" value="800">
+          <input type="range" id="pauseSlider" min="0" max="3000" step="50" value="800">
           <div class="range-limits">
-            <span>100 ms</span>
+            <span>0 ms</span>
             <span>Inter-paket gap</span>
             <span>3000 ms</span>
           </div>
         </div>
       </div>
 
-      <!-- Presets -->
+      <!-- Presets matching Android app -->
       <div class="presets-row">
-        <span style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Snabbval:</span>
-        <button class="preset-chip" onclick="applyPreset(400, 3, 2, 1000)">Långsam (400 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(200, 3, 2, 800)">Standard 30 FPS (200 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(100, 3, 2, 500)">Snabb 60 FPS (100 ms)</button>
-        <button class="preset-chip" onclick="applyPreset(50, 4, 2, 300)">Turbo 120 FPS (50 ms)</button>
+        <span style="font-size:0.8rem; color:var(--text-muted); margin-right:4px;">Snabbval (matchar appens meny):</span>
+        <button class="preset-chip active" data-ms="50" onclick="applySymbolSpeed(50)">50 ms (Standard)</button>
+        <button class="preset-chip" data-ms="100" onclick="applySymbolSpeed(100)">100 ms (30 FPS-säker)</button>
+        <button class="preset-chip" data-ms="200" onclick="applySymbolSpeed(200)">200 ms (Långsam)</button>
       </div>
 
-      <!-- Camera margin helper -->
-      <div class="fps-helper" id="fpsHelper">
-        Vid 200 ms får en 30 FPS-kamera ~6.0 bildrutor per bit och en 60 FPS-kamera ~12.0 bildrutor per bit. (Mycket pålitlig avläsning).
-      </div>
+      <div class="fps-helper" id="fpsHelper"></div>
     </div>
 
     <!-- SAVED PATTERNS / STORAGE MANAGER -->
     <div class="card">
       <div class="card-title">
-        <span>Sparade mönster (Återanvänd & Dela)</span>
+        <span>Sparade mönster</span>
         <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">
           Lagras i webbläsaren (LocalStorage)
         </span>
       </div>
 
       <div class="pattern-save-row">
-        <input type="text" id="patternNameInput" placeholder="Namnge mönstret (t.ex. 'Buss 15 Snabbtest')...">
+        <input type="text" id="patternNameInput" placeholder="Namnge mönstret (t.ex. 'Adress 7 – 50 ms')...">
         <button class="btn btn-outline" id="savePatternBtn">Spara nuvarande inställning</button>
       </div>
 
-      <div class="pattern-list" id="patternList">
-        <!-- Renderas från JS -->
-      </div>
+      <div class="pattern-list" id="patternList"></div>
 
       <div class="storage-footer">
         <div style="display:flex; gap:8px;">
@@ -750,33 +817,65 @@
         <button class="btn btn-danger btn-sm" id="resetDefaultsBtn">Återställ förvalda mönster</button>
       </div>
     </div>
-
   </div>
 
   <script>
     /* =====================================================================
+       EXACT 16-SYMBOL CODEBOOK (matches led_decoder.py & OpticalCodebook.kt)
+       ===================================================================== */
+    const CODEBOOK_PATTERNS = {
+      1:  '0010011001110011',
+      2:  '0001011001010111',
+      3:  '0001110101001101',
+      4:  '0001010011011101',
+      5:  '0001001101011101',
+      6:  '0001010110010111',
+      7:  '0001110100110101',
+      8:  '0010010110100111',
+      9:  '0001101001011011',
+      10: '0010010101101101',
+      11: '0010100101110011',
+      12: '0001011100101101',
+      13: '0001110010101101',
+      14: '0001101110101001',
+      15: '0001110100101011'
+    };
+
+    /* =====================================================================
        STATE & CONFIGURATION
        ===================================================================== */
-    let currentBits = "1111";
+    let activeMode = 'codebook'; // 'codebook' | 'custom'
+    let selectedAddress = 1;
+    let currentBits = CODEBOOK_PATTERNS[1];
     let isLooping = false;
     let isTransmitting = false;
-    let sequenceTimer = null;
-    let currentLedState = 0; // 0 = OFF, 1 = ON
+    let txOriginMs = 0;
+    let activeSteps = [];
+    let activeTotalMs = 0;
+    let currentLedState = 0;
 
-    let config = {
-      bitDuration: 200,      // ms
-      startMultiplier: 3,    // 3x bitDuration
-      stopMultiplier: 2,     // 2x bitDuration (0 = disabled)
-      pauseDuration: 800     // ms
+    const config = {
+      bitDuration: 50,     // ms per symbol (matches app & led_decoder.py default)
+      startMultiplier: 3,  // custom mode only
+      stopMultiplier: 2,   // custom mode only
+      pauseDuration: 800   // custom mode only
     };
 
     // DOM Elements
+    const tabCodebook = document.getElementById('tabCodebook');
+    const tabCustom = document.getElementById('tabCustom');
+    const codebookSection = document.getElementById('codebookSection');
+    const customSection = document.getElementById('customSection');
+    const dataCardHeading = document.getElementById('dataCardHeading');
+    const packetOnlyEls = document.querySelectorAll('.packet-only');
+
     const ledBulb = document.getElementById('ledBulb');
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
     const viewport = document.getElementById('viewport');
     const toggleFsBtn = document.getElementById('toggleFsBtn');
     const fsHint = document.getElementById('fsHint');
+    const fsBadge = document.getElementById('fsBadge');
     const sendOnceBtn = document.getElementById('sendOnceBtn');
     const loopBtn = document.getElementById('loopBtn');
     const stopBtn = document.getElementById('stopBtn');
@@ -785,7 +884,6 @@
     const applyCustomBtn = document.getElementById('applyCustomBtn');
     const activeDataSummary = document.getElementById('activeDataSummary');
 
-    // Timing DOM
     const bitDurationSlider = document.getElementById('bitDurationSlider');
     const bitDurationVal = document.getElementById('bitDurationVal');
     const baudRateVal = document.getElementById('baudRateVal');
@@ -797,7 +895,6 @@
     const pauseVal = document.getElementById('pauseVal');
     const fpsHelper = document.getElementById('fpsHelper');
 
-    // Storage DOM
     const patternNameInput = document.getElementById('patternNameInput');
     const savePatternBtn = document.getElementById('savePatternBtn');
     const patternList = document.getElementById('patternList');
@@ -806,36 +903,71 @@
     const importFileInput = document.getElementById('importFileInput');
     const resetDefaultsBtn = document.getElementById('resetDefaultsBtn');
 
-    // Waveform Canvas
     const waveCanvas = document.getElementById('waveCanvas');
     const waveCtx = waveCanvas.getContext('2d');
-    let waveHistory = new Array(180).fill(0);
+    const waveHistory = new Array(220).fill(0);
 
     /* =====================================================================
-       1. INITIALIZE ADDRESS BUTTONS (0–15)
+       1. MODE SWITCHING & ADDRESS BUTTONS (1–15)
        ===================================================================== */
-    for (let i = 0; i < 16; i++) {
+    function setMode(mode) {
+      activeMode = mode;
+      const isCodebook = mode === 'codebook';
+      tabCodebook.classList.toggle('active', isCodebook);
+      tabCodebook.setAttribute('aria-selected', String(isCodebook));
+      tabCustom.classList.toggle('active', !isCodebook);
+      tabCustom.setAttribute('aria-selected', String(!isCodebook));
+
+      codebookSection.classList.toggle('hidden', !isCodebook);
+      customSection.classList.toggle('hidden', isCodebook);
+      packetOnlyEls.forEach(el => el.classList.toggle('hidden', isCodebook));
+
+      dataCardHeading.textContent = isCodebook
+        ? 'Välj adress (16-stegs kodtabell 1–15)'
+        : 'Anpassad binär sekvens (paketläge)';
+
+      if (isCodebook) {
+        selectAddress(selectedAddress);
+      } else {
+        let val = customBitsInput.value.replace(/[^01]/g, '') || '0010011001110011';
+        currentBits = val;
+        activeDataSummary.textContent = `Aktiv: Egen sekvens (${val})`;
+      }
+
+      updateTimingDisplay();
+      if (isTransmitting) {
+        rebuildActiveSequence();
+      }
+    }
+
+    tabCodebook.addEventListener('click', () => setMode('codebook'));
+    tabCustom.addEventListener('click', () => setMode('custom'));
+
+    for (let addr = 1; addr <= 15; addr++) {
       const btn = document.createElement('button');
-      const bin = i.toString(2).padStart(4, '0');
-      btn.className = `addr-btn ${i === 15 ? 'active' : ''}`;
-      btn.id = `addr-btn-${i}`;
+      const bits = CODEBOOK_PATTERNS[addr];
+      btn.className = `addr-btn ${addr === 1 ? 'active' : ''}`;
+      btn.dataset.address = String(addr);
       btn.innerHTML = `
-        <span>${i}</span>
-        <span class="sub-bin">${bin}</span>
+        <span>Adress ${addr}</span>
+        <span class="sub-bin">${bits}</span>
       `;
-      btn.addEventListener('click', () => {
-        selectAddress(i, bin);
-      });
+      btn.addEventListener('click', () => selectAddress(addr));
       addrBtnContainer.appendChild(btn);
     }
 
-    function selectAddress(num, bin) {
-      currentBits = bin;
-      customBitsInput.value = bin;
-      document.querySelectorAll('.addr-btn').forEach((b, idx) => {
-        b.classList.toggle('active', idx === num);
+    function selectAddress(addr) {
+      selectedAddress = addr;
+      currentBits = CODEBOOK_PATTERNS[addr];
+      customBitsInput.value = currentBits;
+      document.querySelectorAll('.addr-btn').forEach(b => {
+        b.classList.toggle('active', Number(b.dataset.address) === addr);
       });
-      activeDataSummary.textContent = `Aktiv: Buss ${num} (${bin})`;
+      activeDataSummary.textContent = `Aktiv: Adress ${addr} (${currentBits})`;
+      updateFsBadge();
+      if (isTransmitting && activeMode === 'codebook') {
+        rebuildActiveSequence();
+      }
     }
 
     applyCustomBtn.addEventListener('click', () => {
@@ -843,15 +975,28 @@
       if (!val) val = '0';
       customBitsInput.value = val;
       currentBits = val;
-      document.querySelectorAll('.addr-btn').forEach(b => b.classList.remove('active'));
       activeDataSummary.textContent = `Aktiv: Egen sekvens (${val})`;
+      updateFsBadge();
+      if (isTransmitting) {
+        rebuildActiveSequence();
+      }
     });
 
+    function updateFsBadge() {
+      if (activeMode === 'codebook') {
+        fsBadge.textContent = `Adress ${selectedAddress} · ${config.bitDuration} ms`;
+      } else {
+        fsBadge.textContent = `Egen (${currentBits.length} bitar) · ${config.bitDuration} ms`;
+      }
+    }
+
     /* =====================================================================
-       2. LED & HARDWARE EMULATION
+       2. LED STATE & PHASE-LOCKED TRANSMITTER ENGINE
        ===================================================================== */
     function setLedState(state) {
-      currentLedState = state ? 1 : 0;
+      const next = state ? 1 : 0;
+      if (next === currentLedState) return;
+      currentLedState = next;
       if (currentLedState === 1) {
         ledBulb.classList.add('state-on');
         statusDot.classList.add('active');
@@ -863,113 +1008,134 @@
 
     ledBulb.addEventListener('click', () => {
       if (!isTransmitting) {
-        setLedState(!currentLedState);
-        setTimeout(() => setLedState(0), 400);
+        setLedState(1);
+        setTimeout(() => {
+          if (!isTransmitting) setLedState(0);
+        }, 300);
       }
     });
 
-    /* =====================================================================
-       3. OPTICAL TRANSMITTER ENGINE
-       ===================================================================== */
-    function transmitSequence() {
-      if (isTransmitting) return;
-      isTransmitting = true;
-
-      const startDuration = config.bitDuration * config.startMultiplier;
-      const syncGapDuration = config.bitDuration;
+    function buildSequenceSteps() {
       const bitDuration = config.bitDuration;
-      const pauseDuration = config.pauseDuration;
       const bits = currentBits.split('').map(Number);
-
-      // Build array of sequence steps: { state: 1|0, duration: ms, label: string }
       const steps = [];
+      let cursor = 0;
 
-      // Step 1: Start Pulse (Preamble)
-      if (config.startMultiplier > 0) {
-        steps.push({ state: 1, duration: startDuration, label: `STARTPULS (HÖG ${startDuration}ms)` });
-        steps.push({ state: 0, duration: syncGapDuration, label: `SYNK-GAP (LÅG ${syncGapDuration}ms)` });
-      }
-
-      // Step 2: Payload data bits
-      bits.forEach((b, idx) => {
-        steps.push({ state: b, duration: bitDuration, label: `BIT ${idx + 1}/${bits.length}: ${b === 1 ? 'HÖG (1)' : 'LÅG (0)'}` });
-      });
-
-      // Step 3: Stop Signal (Stopp-puls)
-      if (config.stopMultiplier > 0) {
-        const stopDuration = config.bitDuration * config.stopMultiplier;
-        steps.push({ state: 1, duration: stopDuration, label: `SLUTSIGNAL (HÖG ${stopDuration}ms)` });
-        steps.push({ state: 0, duration: bitDuration, label: `SLUT-GAP (LÅG ${bitDuration}ms)` });
-      }
-
-      // Step 4: End Gap / Inter-packet pause
-      steps.push({ state: 0, duration: pauseDuration, label: `PAUS (${pauseDuration}ms)` });
-
-      let currentStepIndex = 0;
-
-      function executeStep() {
-        if (!isTransmitting) return;
-
-        if (currentStepIndex >= steps.length) {
-          // Finished this sequence
-          if (isLooping) {
-            currentStepIndex = 0;
-            executeStep();
-          } else {
-            stopTransmission();
-            statusText.textContent = "KLAR (IDLE)";
-          }
-          return;
+      if (activeMode === 'codebook') {
+        // Pure continuous 16-symbol cycle: no start pulse, stop pulse, or pause
+        bits.forEach((b, idx) => {
+          steps.push({
+            start: cursor,
+            end: cursor + bitDuration,
+            state: b,
+            label: `ADRESS ${selectedAddress} · SYMBOL ${idx + 1}/16: ${b === 1 ? 'PÅ (1)' : 'AV (0)'}`
+          });
+          cursor += bitDuration;
+        });
+      } else {
+        if (config.startMultiplier > 0) {
+          const startDur = bitDuration * config.startMultiplier;
+          steps.push({ start: cursor, end: cursor + startDur, state: 1, label: `STARTPULS (${startDur} ms)` });
+          cursor += startDur;
+          steps.push({ start: cursor, end: cursor + bitDuration, state: 0, label: `SYNK-GAP (${bitDuration} ms)` });
+          cursor += bitDuration;
         }
-
-        const step = steps[currentStepIndex];
-        setLedState(step.state);
-        statusText.textContent = step.label;
-        currentStepIndex++;
-
-        sequenceTimer = setTimeout(executeStep, step.duration);
+        bits.forEach((b, idx) => {
+          steps.push({
+            start: cursor,
+            end: cursor + bitDuration,
+            state: b,
+            label: `BIT ${idx + 1}/${bits.length}: ${b === 1 ? 'PÅ (1)' : 'AV (0)'}`
+          });
+          cursor += bitDuration;
+        });
+        if (config.stopMultiplier > 0) {
+          const stopDur = bitDuration * config.stopMultiplier;
+          steps.push({ start: cursor, end: cursor + stopDur, state: 1, label: `SLUTSIGNAL (${stopDur} ms)` });
+          cursor += stopDur;
+          steps.push({ start: cursor, end: cursor + bitDuration, state: 0, label: `SLUT-GAP (${bitDuration} ms)` });
+          cursor += bitDuration;
+        }
+        if (config.pauseDuration > 0) {
+          steps.push({ start: cursor, end: cursor + config.pauseDuration, state: 0, label: `PAUS (${config.pauseDuration} ms)` });
+          cursor += config.pauseDuration;
+        }
       }
-
-      executeStep();
+      return { steps, totalMs: Math.max(1, cursor) };
     }
 
-    function stopTransmission() {
+    function rebuildActiveSequence() {
+      const built = buildSequenceSteps();
+      activeSteps = built.steps;
+      activeTotalMs = built.totalMs;
+      txOriginMs = performance.now();
+    }
+
+    function startTransmission(loop) {
+      isLooping = loop;
+      isTransmitting = true;
+      rebuildActiveSequence();
+
+      if (loop) {
+        loopBtn.classList.add('active');
+        loopBtn.textContent = 'Stoppa kontinuerlig sändning';
+      } else {
+        loopBtn.classList.remove('active');
+        loopBtn.textContent = 'Starta kontinuerlig sändning';
+      }
+    }
+
+    function stopTransmission(label = 'VILO-LÄGE (IDLE)') {
       isTransmitting = false;
       isLooping = false;
-      if (sequenceTimer) {
-        clearTimeout(sequenceTimer);
-        sequenceTimer = null;
-      }
+      activeSteps = [];
       setLedState(0);
-      statusText.textContent = "VILO-LÄGE (IDLE)";
+      statusText.textContent = label;
       loopBtn.classList.remove('active');
-      loopBtn.innerHTML = "Loopa kontinuerligt";
+      loopBtn.textContent = 'Starta kontinuerlig sändning';
     }
 
-    sendOnceBtn.addEventListener('click', () => {
-      stopTransmission();
-      transmitSequence();
-    });
-
     loopBtn.addEventListener('click', () => {
-      if (isLooping) {
+      if (isTransmitting && isLooping) {
         stopTransmission();
       } else {
-        stopTransmission();
-        isLooping = true;
-        loopBtn.classList.add('active');
-        loopBtn.innerHTML = "Stoppa Loop";
-        transmitSequence();
+        startTransmission(true);
       }
     });
 
-    stopBtn.addEventListener('click', stopTransmission);
+    sendOnceBtn.addEventListener('click', () => {
+      startTransmission(false);
+    });
+
+    stopBtn.addEventListener('click', () => stopTransmission());
 
     /* =====================================================================
-       4. REALTIME OSCILLOSCOPE CANVAS
+       3. VSYNC ANIMATION LOOP (DRIFT-FREE CLOCK + OSCILLOSCOPE)
        ===================================================================== */
-    function renderWaveform() {
-      // Shift left and append current LED state
+    function animationTick(now) {
+      if (isTransmitting && activeSteps.length > 0) {
+        const elapsed = now - txOriginMs;
+        if (!isLooping && elapsed >= activeTotalMs) {
+          stopTransmission('KLAR (IDLE)');
+        } else {
+          const cyclePos = elapsed % activeTotalMs;
+          // Find active step
+          let matched = activeSteps[activeSteps.length - 1];
+          for (let i = 0; i < activeSteps.length; i++) {
+            const s = activeSteps[i];
+            if (cyclePos >= s.start && cyclePos < s.end) {
+              matched = s;
+              break;
+            }
+          }
+          setLedState(matched.state);
+          if (statusText.textContent !== matched.label) {
+            statusText.textContent = matched.label;
+          }
+        }
+      }
+
+      // Draw realtime oscilloscope
       waveHistory.shift();
       waveHistory.push(currentLedState);
 
@@ -977,39 +1143,31 @@
       const h = waveCanvas.height;
       waveCtx.clearRect(0, 0, w, h);
 
-      // Grid background lines
-      waveCtx.strokeStyle = "#101b30";
+      waveCtx.strokeStyle = '#101b30';
       waveCtx.lineWidth = 1;
       waveCtx.beginPath();
       waveCtx.moveTo(0, h * 0.2); waveCtx.lineTo(w, h * 0.2);
       waveCtx.moveTo(0, h * 0.8); waveCtx.lineTo(w, h * 0.8);
       waveCtx.stroke();
 
-      // Signal line
-      waveCtx.strokeStyle = currentLedState ? "#38bdf8" : "#0284c7";
+      waveCtx.strokeStyle = currentLedState ? '#38bdf8' : '#0284c7';
       waveCtx.lineWidth = 2.5;
-      waveCtx.shadowColor = currentLedState ? "#38bdf8" : "transparent";
-      waveCtx.shadowBlur = currentLedState ? 8 : 0;
       waveCtx.beginPath();
-
       const stepX = w / (waveHistory.length - 1);
       for (let i = 0; i < waveHistory.length; i++) {
         const x = i * stepX;
-        const val = waveHistory[i];
-        // 1 is near top (h * 0.2), 0 is near bottom (h * 0.8)
-        const y = val === 1 ? h * 0.22 : h * 0.78;
+        const y = waveHistory[i] === 1 ? h * 0.22 : h * 0.78;
         if (i === 0) waveCtx.moveTo(x, y);
         else waveCtx.lineTo(x, y);
       }
       waveCtx.stroke();
-      waveCtx.shadowBlur = 0;
 
-      requestAnimationFrame(renderWaveform);
+      requestAnimationFrame(animationTick);
     }
-    renderWaveform();
+    requestAnimationFrame(animationTick);
 
     /* =====================================================================
-       5. TIMING CONTROLS & FPS ESTIMATOR
+       4. TIMING CONTROLS & FPS ESTIMATOR
        ===================================================================== */
     function updateTimingDisplay() {
       config.bitDuration = parseInt(bitDurationSlider.value, 10);
@@ -1018,33 +1176,40 @@
       config.pauseDuration = parseInt(pauseSlider.value, 10);
 
       bitDurationVal.textContent = `${config.bitDuration} ms`;
-      const baud = (1000 / config.bitDuration).toFixed(1);
-      baudRateVal.textContent = `${baud} baud (bit/s)`;
+      const symPerSec = (1000 / config.bitDuration).toFixed(1);
+      const cycleMs = config.bitDuration * 16;
+      baudRateVal.textContent = `${symPerSec} sym/s (cykel ${cycleMs} ms)`;
 
-      const startMs = config.bitDuration * config.startMultiplier;
-      startPulseVal.textContent = config.startMultiplier > 0 
-        ? `${config.startMultiplier}x (${startMs} ms)` 
-        : `Inaktiverad (0 ms)`;
-
-      const stopMs = config.bitDuration * config.stopMultiplier;
-      stopPulseVal.textContent = config.stopMultiplier > 0 
-        ? `${config.stopMultiplier}x (${stopMs} ms)` 
-        : `Inaktiverad (0 ms)`;
-
+      startPulseVal.textContent = config.startMultiplier > 0
+        ? `${config.startMultiplier}x (${config.bitDuration * config.startMultiplier} ms)`
+        : 'Av (0 ms)';
+      stopPulseVal.textContent = config.stopMultiplier > 0
+        ? `${config.stopMultiplier}x (${config.bitDuration * config.stopMultiplier} ms)`
+        : 'Av (0 ms)';
       pauseVal.textContent = `${config.pauseDuration} ms`;
 
-      // Calculate camera frames per bit
+      document.querySelectorAll('.preset-chip').forEach(chip => {
+        chip.classList.toggle('active', Number(chip.dataset.ms) === config.bitDuration);
+      });
+
       const framesAt30 = ((config.bitDuration / 1000) * 30).toFixed(1);
       const framesAt60 = ((config.bitDuration / 1000) * 60).toFixed(1);
+      const windowMs = config.bitDuration * 18;
 
-      let healthNote = "Mycket pålitlig avläsning";
-      if (framesAt30 < 2.0) {
-        healthNote = "Risk för bit-bortfall på 30 FPS! Kräver 60 FPS eller högre";
-      } else if (framesAt30 < 3.5) {
-        healthNote = "Snabb takt; säkerställ stabil FPS och god exponering";
+      let note = 'Mycket stabil på både 30 och 60 FPS.';
+      if (config.bitDuration <= 50) {
+        note = 'Standard för mobilappen och led_decoder.py. Bäst vid 60 FPS; fungerar även vid stabil 30 FPS.';
+      } else if (config.bitDuration <= 100) {
+        note = 'Bra val vid 30 FPS-webbkamera eller emulator (kom ihåg att välja samma symboltid i appens meny).';
       }
 
-      fpsHelper.innerHTML = `Vid <strong>${config.bitDuration} ms</strong> får en 30 FPS-kamera ~<strong>${framesAt30}</strong> rutor/bit och en 60 FPS-kamera ~<strong>${framesAt60}</strong> rutor/bit. (${healthNote}).`;
+      fpsHelper.innerHTML =
+        `Vid <strong>${config.bitDuration} ms</strong>: ~<strong>${framesAt30}</strong> rutor/symbol (30 FPS) och ~<strong>${framesAt60}</strong> rutor/symbol (60 FPS). Mätfönster (18 symboler): <strong>${windowMs} ms</strong>. ${note}`;
+
+      updateFsBadge();
+      if (isTransmitting) {
+        rebuildActiveSequence();
+      }
     }
 
     bitDurationSlider.addEventListener('input', updateTimingDisplay);
@@ -1052,18 +1217,15 @@
     stopPulseSlider.addEventListener('input', updateTimingDisplay);
     pauseSlider.addEventListener('input', updateTimingDisplay);
 
-    window.applyPreset = function(bitMs, startMul, stopMul, pauseMs) {
-      bitDurationSlider.value = bitMs;
-      startPulseSlider.value = startMul;
-      stopPulseSlider.value = stopMul !== undefined ? stopMul : 2;
-      pauseSlider.value = pauseMs;
+    window.applySymbolSpeed = function(ms) {
+      bitDurationSlider.value = ms;
       updateTimingDisplay();
     };
 
     updateTimingDisplay();
 
     /* =====================================================================
-       6. FULLSCREEN / KAMERALÄGE
+       5. FULLSCREEN / KAMERALÄGE
        ===================================================================== */
     function toggleFullscreenMode() {
       viewport.classList.toggle('fullscreen-mode');
@@ -1087,15 +1249,15 @@
     });
 
     /* =====================================================================
-       7. PATTERN MANAGER (LOCALSTORAGE & JSON)
+       6. SAVED PATTERNS (LOCALSTORAGE & JSON)
        ===================================================================== */
-    const STORAGE_KEY = 'optical_bus_saved_patterns_v2';
+    const STORAGE_KEY = 'optical_bus_saved_patterns_v3';
 
     const DEFAULT_PATTERNS = [
-      { id: '1', name: 'Buss 15 (Standard 30 FPS)', bits: '1111', bitDuration: 200, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 800 },
-      { id: '2', name: 'Buss 5 Växlande (1010)', bits: '0101', bitDuration: 200, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 800 },
-      { id: '3', name: 'Buss 0 Nollställd', bits: '0000', bitDuration: 250, startMultiplier: 3, stopMultiplier: 2, pauseDuration: 1000 },
-      { id: '4', name: 'Höghastighets-Beacon (8-bit)', bits: '10101010', bitDuration: 100, startMultiplier: 4, stopMultiplier: 2, pauseDuration: 600 }
+      { id: '1', mode: 'codebook', address: 1, name: 'Adress 1 (Standard 50 ms)', bits: CODEBOOK_PATTERNS[1], bitDuration: 50 },
+      { id: '2', mode: 'codebook', address: 7, name: 'Adress 7 (Standard 50 ms)', bits: CODEBOOK_PATTERNS[7], bitDuration: 50 },
+      { id: '3', mode: 'codebook', address: 15, name: 'Adress 15 (30 FPS – 100 ms)', bits: CODEBOOK_PATTERNS[15], bitDuration: 100 },
+      { id: '4', mode: 'codebook', address: 4, name: 'Adress 4 (Långsam – 200 ms)', bits: CODEBOOK_PATTERNS[4], bitDuration: 200 }
     ];
 
     function getSavedPatterns() {
@@ -1103,7 +1265,7 @@
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) return JSON.parse(stored);
       } catch (e) {
-        console.error("Fel vid läsning från localStorage", e);
+        console.error('Fel vid läsning från localStorage', e);
       }
       return DEFAULT_PATTERNS;
     }
@@ -1112,9 +1274,13 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(patterns));
       } catch (e) {
-        alert("Kunde inte spara till webbläsarens minne!");
+        alert('Kunde inte spara till webbläsarens minne.');
       }
       renderPatternList();
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
 
     function renderPatternList() {
@@ -1127,112 +1293,99 @@
       }
 
       patterns.forEach(p => {
-        const stopText = (p.stopMultiplier !== undefined && p.stopMultiplier > 0) ? `${p.stopMultiplier}x` : 'Av';
+        const modeLabel = p.mode === 'custom'
+          ? `Paket · [${p.bits}] · ${p.bitDuration} ms`
+          : `Kodtabell Adress ${p.address || '?'} · [${p.bits}] · ${p.bitDuration} ms`;
         const item = document.createElement('div');
         item.className = 'pattern-item';
         item.innerHTML = `
           <div class="pattern-item-info">
             <span class="pattern-item-name">${escapeHtml(p.name)}</span>
-            <span class="pattern-item-meta">Kod: [${p.bits}] &bull; ${p.bitDuration}ms &bull; Start: ${p.startMultiplier}x &bull; Slut: ${stopText} &bull; Paus: ${p.pauseDuration}ms</span>
+            <span class="pattern-item-meta">${escapeHtml(modeLabel)}</span>
           </div>
           <div class="pattern-item-actions">
-            <button class="btn btn-outline btn-sm" onclick="loadPattern('${p.id}')">Ladda</button>
-            <button class="btn btn-danger btn-sm" onclick="deletePattern('${p.id}')">✕</button>
+            <button class="btn btn-outline btn-sm" onclick="loadPattern('${escapeHtml(p.id)}')">Ladda</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePattern('${escapeHtml(p.id)}')">Ta bort</button>
           </div>
         `;
         patternList.appendChild(item);
       });
     }
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
-    }
-
     window.loadPattern = function(id) {
-      const patterns = getSavedPatterns();
-      const p = patterns.find(item => item.id === id);
+      const p = getSavedPatterns().find(item => item.id === id);
       if (!p) return;
 
-      currentBits = p.bits;
-      customBitsInput.value = p.bits;
-      activeDataSummary.textContent = `Aktiv: "${p.name}" (${p.bits})`;
-
-      // Update timing
-      bitDurationSlider.value = p.bitDuration;
-      startPulseSlider.value = p.startMultiplier;
-      stopPulseSlider.value = p.stopMultiplier !== undefined ? p.stopMultiplier : 2;
-      pauseSlider.value = p.pauseDuration;
-      updateTimingDisplay();
-
-      // Highlight matching address button if it is 4-bit standard
-      const intVal = parseInt(p.bits, 2);
-      if (!isNaN(intVal) && intVal >= 0 && intVal <= 15 && p.bits.length === 4) {
-        document.querySelectorAll('.addr-btn').forEach((b, idx) => {
-          b.classList.toggle('active', idx === intVal);
-        });
+      bitDurationSlider.value = p.bitDuration || 50;
+      if (p.mode === 'custom') {
+        startPulseSlider.value = p.startMultiplier ?? 3;
+        stopPulseSlider.value = p.stopMultiplier ?? 2;
+        pauseSlider.value = p.pauseDuration ?? 800;
+        customBitsInput.value = p.bits;
+        setMode('custom');
       } else {
-        document.querySelectorAll('.addr-btn').forEach(b => b.classList.remove('active'));
+        setMode('codebook');
+        if (p.address && CODEBOOK_PATTERNS[p.address]) {
+          selectAddress(p.address);
+        }
       }
+      updateTimingDisplay();
     };
 
     window.deletePattern = function(id) {
-      if (!confirm("Vill du ta bort detta mönster?")) return;
-      const patterns = getSavedPatterns().filter(p => p.id !== id);
-      savePatternsToStorage(patterns);
+      if (!confirm('Vill du ta bort detta mönster?')) return;
+      savePatternsToStorage(getSavedPatterns().filter(p => p.id !== id));
     };
 
     savePatternBtn.addEventListener('click', () => {
-      const name = patternNameInput.value.trim() || `Mönster ${currentBits} (${config.bitDuration}ms)`;
+      const fallbackName = activeMode === 'codebook'
+        ? `Adress ${selectedAddress} (${config.bitDuration} ms)`
+        : `Egen ${currentBits} (${config.bitDuration} ms)`;
+      const name = patternNameInput.value.trim() || fallbackName;
       const newPattern = {
         id: Date.now().toString(),
-        name: name,
+        mode: activeMode,
+        address: activeMode === 'codebook' ? selectedAddress : null,
+        name,
         bits: currentBits,
         bitDuration: config.bitDuration,
         startMultiplier: config.startMultiplier,
         stopMultiplier: config.stopMultiplier,
         pauseDuration: config.pauseDuration
       };
-
       const patterns = getSavedPatterns();
       patterns.unshift(newPattern);
       savePatternsToStorage(patterns);
       patternNameInput.value = '';
     });
 
-    // Export JSON
     exportBtn.addEventListener('click', () => {
-      const patterns = getSavedPatterns();
-      const blob = new Blob([JSON.stringify(patterns, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify(getSavedPatterns(), null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `optical_patterns_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `optical_patterns_${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
 
-    // Import JSON
     importBtn.addEventListener('click', () => importFileInput.click());
 
     importFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
           const imported = JSON.parse(event.target.result);
           if (Array.isArray(imported)) {
-            const current = getSavedPatterns();
-            // Merge unique
-            const merged = [...imported, ...current];
-            savePatternsToStorage(merged);
-            alert(`Importerade ${imported.length} mönster!`);
+            savePatternsToStorage([...imported, ...getSavedPatterns()]);
+            alert(`Importerade ${imported.length} mönster.`);
           } else {
-            alert("Ogiltigt JSON-format.");
+            alert('Ogiltigt JSON-format.');
           }
-        } catch (err) {
-          alert("Kunde inte läsa JSON-filen.");
+        } catch {
+          alert('Kunde inte läsa JSON-filen.');
         }
       };
       reader.readAsText(file);
@@ -1240,7 +1393,7 @@
     });
 
     resetDefaultsBtn.addEventListener('click', () => {
-      if (confirm("Vill du återställa till standardmönstren?")) {
+      if (confirm('Vill du återställa till standardmönstren?')) {
         savePatternsToStorage(DEFAULT_PATTERNS);
       }
     });

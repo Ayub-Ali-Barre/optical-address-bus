@@ -1,30 +1,23 @@
 # Optisk LED-Transmitter & Timing-Simulator
 
-En avancerad webbaserad simulator för optisk kamerakommunikation (Optical Camera Communication / OCC). 
-Simulatorn sänder data och adressbussar genom en enda optisk LED-lampa som blinkar i en tidsinställbar takt optimerad för datorseende och OpenCV.
+Webbaserad sändarsimulator för optisk kamerakommunikation (Optical Camera Communication, OCC), uppdaterad för direkt testning mot mobilappen `optical-scanner-app` och `led_decoder.py`.
 
-🌐 **Live GitHub Pages:** [https://ayub-ali-barre.github.io/optical-address-bus/](https://ayub-ali-barre.github.io/optical-address-bus/)
+**Live GitHub Pages:** [https://ayub-ali-barre.github.io/optical-address-bus/](https://ayub-ali-barre.github.io/optical-address-bus/)
 
 ---
 
-## Nya Funktioner
+## Funktioner
 
-### 1. Optisk LED-Lampa
-- **Avstängd (0):** Mörk skifferblå/svart med subtil kant, så kameran kan behålla positionen.
-- **Tänd (1):** Intensivt elektrisk blå lampa med radial ljusspridning/glow.
-- **Kameraläge (Helskärm):** Döljer all text och knappar och visar endast lampan mot en helsvart bakgrund.
+### 1. Kontinuerlig 16-stegs kodtabell (Standardläge)
+- Innehåller exakt samma 15 st 16-symbolsmönster (adress `1`–`15`) som mobilappen och `led_decoder.py`.
+- Sänder cykliskt utan startpuls, slutsignal eller paus.
+- Standardhastighet `50 ms` per symbol (snabbval `50 ms`, `100 ms` och `200 ms` matchar appens inställningsmeny).
+- Faslåst klocka via `performance.now()` och `requestAnimationFrame` utan CSS-övergångar på lampan för skarpa, driftfria ljuspulser.
 
-### 2. Full Kontroll över Takt & Tajming
-- **Bit-duration (30 – 1000 ms):** Justera exakt klocktakt i millisekunder eller välj snabbknappar (400ms, 200ms, 100ms, 50ms).
-- **Startpuls (1x – 6x bit-tid):** Preamble-signal med hög puls för att synkronisera kamerans klocka (standard 3x).
-- **Slutsignal (1x – 4x bit-tid):** Dedikerad stopp-puls för att markera paketets slut och särskilja avslutande nollor från pauser (standard 2x).
-- **Paus mellan paket (100 – 3000 ms):** Inter-paket-gap vid kontinuerlig loopning.
-- **FPS-kalkylator:** Beräknar i realtid hur många bildrutor en 30 FPS och 60 FPS webbkamera fångar per bit.
+### 2. Kameraläge (Helskärm)
+- Döljer reglage och visar lampan mot helsvart bakgrund (`#000000`) med lagom marginal så att kamerans siktruta får med både lampan och mörk kant utan full pixelklippning.
+- Du kan byta adress `1`–`15` live under pågående sändning.
 
-### 3. Mönsterhanterare (Spara & Återanvänd)
-- **Spara mönster:** Namnge och spara en kombination av binär sekvens + exakta millisekundstider.
-- **LocalStorage:** Mönstren sparas direkt i webbläsaren och finns kvar vid återbesök.
-- **Exportera & Importera:** Dela sparade mönster som `.json`-filer mellan enheter eller kollegor.
-
-### 4. Realtids-Oscilloskop
-- Visar en kontinuerlig vågform av den elektriska/optiska signalen i synk med lampans blinkningar.
+### 3. Anpassat paketläge & Sparade mönster
+- Växla flik till **Anpassat paketläge** för egna binära sekvenser med startpuls, slutsignal och paus.
+- Realtids-oscilloskop, FPS-estimator, sparning i `localStorage` samt JSON-export/import.
